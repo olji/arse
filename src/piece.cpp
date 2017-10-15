@@ -1,3 +1,5 @@
+#include <iostream>
+#include <exception>
 #include <vector>
 
 #include "piece.hpp"
@@ -8,17 +10,10 @@ void piece_insert(piece *p, piece *n){
     n->prev = p;
     p->next = n;
 }
-void piece_delete_id(piece *start, int id){
-    if(start->next != 0){
-        piece_delete_id(start->next, id);
-    }
-    if(start->piece_id == id){
-        start->prev->next = start->next;
-        start->next->prev = start->prev;
-        delete start;
-    }
-}
 void piece_delete_chain(piece *start, piece *end){
+    if(!start){
+        throw new std::exception();
+    }
     if(start != end){
         piece_delete_chain(start->next, end);
     }
@@ -32,26 +27,48 @@ piece *piece_split(piece* p, int index){
     n->length = p->length - index;
     n->start = p->start + index;
     p->length = index;
-    n->piece_id = p->piece_id;
+    return n;
 }
-part::part(){
-    length = 1;
+piece *piece_copy(piece *p){
+    piece *copy = new piece;
+    copy->next = p->next;
+    copy->prev = p->prev;
+    copy->start = p->start;
+    copy->length = p->length;
+    copy->buffer = p->buffer;
+    return copy;
 }
-part::~part(){
-    piece_delete_chain(pieces[0], pieces[length-1]);
-    delete pieces;
+part *part_create(piece *from, piece *to){
+    part *n = new part;
+    n->first = piece_copy(from);
+    piece *tmp = n->first;
+    while(from != to){
+        tmp->next = piece_copy(tmp->next);
+        tmp->next->prev = tmp;
+        tmp = tmp->next;
+        from = from->next;
+    }
+    n->last = tmp;
+    n->length = part_length(n);
+    return n;
 }
-bool insert(piece *p);
-piece *part::next(){}
-piece *part::prev(){}
-piece *part::buffer(){}
-piece *part::split(piece* p, int index){
-    piece *n = new piece();
-    piece_insert(p, n);
-    n->buffer = p->buffer;
-    n->start = index;
-    n->length = p->length - index;
-    n->start = p->start + index;
-    p->length = index;
-    ++length;
+void part_delete(part *p, bool content){
+    if(content){
+        piece_delete_chain(p->first, p->last);
+    }
+    delete p;
+}
+int part_length(part *p){
+    piece *temp = p->first;
+    int length = temp->length;
+    while(temp != p->last){
+        temp = temp->next;
+        length + temp->length;
+    }
+    return length;
+}
+void piece_print(piece *p){
+    /*
+     *std::cout << "[" << p->buffer << "] -- " << p->start << " -- " << p->length << std::endl;
+     */
 }

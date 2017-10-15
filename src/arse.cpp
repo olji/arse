@@ -35,6 +35,7 @@ int main(int argc, char **argv){
             } while(mode != 'q');
 
         } else {
+            std::cout << "Insertion test" << std::endl;
             editor->insert(4, "<SOMETHING>");
             std::cout << editor->get_buffer() << std::endl;
             editor->insert(0, "<Here>");
@@ -45,11 +46,25 @@ int main(int argc, char **argv){
             std::cout << editor->get_buffer() << std::endl;
             editor->insert(11, "<Kidding>");
             std::cout << editor->get_buffer() << std::endl;
+            /* Undo/redo and removal causes memory leaks */
+            std::cout << "Undo/redo test" << std::endl;
             editor->undo();
             std::cout << editor->get_buffer() << std::endl;
             editor->undo();
             std::cout << editor->get_buffer() << std::endl;
+            editor->redo();
+            std::cout << editor->get_buffer() << std::endl;
             editor->undo();
+            std::cout << editor->get_buffer() << std::endl;
+            std::cout << "Removal test" << std::endl;
+            /* Delete across pieces */
+            editor->remove(4, 10);
+            std::cout << editor->get_buffer() << std::endl;
+            /* Delete whole piece */
+            editor->remove(0, 2);
+            std::cout << editor->get_buffer() << std::endl;
+            /* Delete in same piece */
+            editor->remove(6, 0);
             std::cout << editor->get_buffer() << std::endl;
         }
         delete editor;

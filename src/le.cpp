@@ -27,6 +27,12 @@ void le::insert(int index, std::string str){
     buffers[CHANGE].append(str);
     changes->insert(index, start, length);
 }
+void le::remove(int index, int length){
+    changes->remove(index, length);
+}
 void le::undo(){
     changes->undo();
+}
+void le::redo(){
+    changes->redo();
 }

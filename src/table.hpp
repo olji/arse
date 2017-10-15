@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "undo.hpp"
+#include "history.hpp"
 struct piece;
-class table: public undoable {
+class table: public history {
     piece *begin;
     piece *end;
     std::string original;
@@ -16,7 +16,6 @@ class table: public undoable {
     ~table();
     void insert(int index, int start, int length);
     void remove(int from, int to);
-    void redo();
     std::vector<piece*> get_pieces();
 };
 #endif

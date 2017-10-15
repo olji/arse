@@ -12,23 +12,18 @@ struct piece{
     buffertype buffer;
     int start;
     int length;
-    int piece_id;
 };
-class part: public piece{
-    piece** pieces;
+struct part{
+    piece* first;
+    piece* last;
     int length;
-    public:
-    part();
-    ~part();
-
-    bool insert(piece *p);
-    piece *next();
-    piece *prev();
-    piece *buffer();
-    piece *split(piece *p, int index);
 };
 void piece_insert(piece *p, piece *n);
-void piece_delete_id(piece *start, int id);
+piece *piece_copy(piece *p);
 void piece_delete_chain(piece *start, piece *end);
 piece *piece_split(piece* p, int index);
+int part_length(part* p);
+void piece_print(piece *p);
+part *part_create(piece *from, piece *to);
+void part_delete(part *p, bool content = true);
 #endif

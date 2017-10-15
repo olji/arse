@@ -24,40 +24,93 @@ table::table(std::string input){
 }
 table::~table(){
     piece_delete_chain(begin, end);
+    while(!history.empty()){
+        part *p = history.top();
+        part_delete(p);
+        history.pop();
+    }
+    while(!future.empty()){
+        part *p = future.top();
+        part_delete(p);
+        future.pop();
+    }
 }
 void table::insert(int index, int start, int length){
-    std::cout << index << " -- " << start << std::endl;
     piece *p = begin;
     piece *n = new piece();
-    n->piece_id = (history.empty() ? 1 : history.top()->piece_id + 1);
-    history.push(n);
     int distance = p->length;
-    std::cout << "distance: " << distance << std::endl;
     while(distance < index || p == end){
         p = p->next;
         distance += p->length;
-        std::cout << "distance: " << distance << std::endl;
     }
     index = index - (distance - p->length);
     n->length = length;
     n->start = start;
     n->buffer = CHANGE;
-    if(p->length != index){
+    bool even = p->length == index;
+    part *range;
+    if(even){
+        range = part_create(p, p);
+    } else {
+        range = part_create(p, p->next);
+    }
+    history.push(range);
+
+    if(!even){
         piece_split(p, index);
     }
     piece_insert(p, n);
     p->length = index;
 }
-void table::remove(int from, int to){
-}
-void table::redo(){
+/* FIXME: Ob1e, d0 -> d1, likely split*/
+void table::remove(int from, int length){
+    piece *first = begin;
+    int distance = first->length;
+    while(distance < from || first == end){
+        first = first->next;
+        distance += first->length;
+    }
+    from = from - (distance - first->length);
+    piece *last = first;
+    distance = last->length - from;
+    while(distance < length || last == end){
+        last = last->next;
+        distance += last->length;
+    }
+    std::cout << "Length: " << length << ", distance: " << distance << ", last->length: " << last->length << std::endl;
+    piece *part_start, *part_end;
+    part_start = (from == first->length) ? first->next : first;
+    int len = length - (distance - last->length);
+    part_end = (len == last->length) ? last->next : last;
+    piece_print(part_start);
+    piece_print(part_end);
+    history.push(part_create(part_start, part_end));
+    piece *del_start, *del_end;
+    del_start = (part_start == first) ? piece_split(first, from) : part_start;
+    if(part_start == part_end){
+        std::cout << "Same" << std::endl;
+        piece_print(del_start->next);
+        del_end = piece_split(del_start, len)->prev;
+    } else {
+        std::cout << "Diff" << std::endl;
+        del_end = ((part_end == last) ? piece_split(last, len) : part_end)->prev;
+    }
+    piece_print(del_start);
+    piece_print(del_end);
+    piece_print(del_end->next);
+    del_start->prev->next = del_end->next;
+    del_end->next->prev = del_start->prev;
+    piece_print(del_start->prev->next);
+    piece_print(del_end->next->prev);
+    piece_delete_chain(del_start, del_end);
 }
 std::vector<piece*> table::get_pieces(){
     std::vector<piece*> pieces;
-    piece *p = begin->next;
+    piece *p = begin;
     while(p != end){
         pieces.push_back(p);
         p = p->next;
     }
+    pieces.push_back(end);
     return pieces;
 }

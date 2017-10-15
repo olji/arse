@@ -12,6 +12,8 @@ class le{
         ~le();
         std::string get_buffer();
         void insert(int index, std::string str);
+        void remove(int index, int length);
         void undo();
+        void redo();
 };
 #endif
