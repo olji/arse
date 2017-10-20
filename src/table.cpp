@@ -20,7 +20,9 @@ table::table(std::string input){
     p->prev = begin;
     p->next = end;
     begin->next = p;
+    begin->prev = begin;
     end->prev = p;
+    end->next = end;
 }
 table::~table(){
     piece_delete_chain(begin, end);
