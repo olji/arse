@@ -62,7 +62,6 @@ void table::insert(int index, int start, int length){
     piece_insert(p, n);
     p->length = index;
 }
-/* FIXME: Ob1e, d0 -> d1, likely split*/
 void table::remove(int from, int length){
     piece *first = begin;
     int distance = first->length;
@@ -80,7 +79,12 @@ void table::remove(int from, int length){
     std::cout << "Length: " << length << ", distance: " << distance << ", last->length: " << last->length << std::endl;
     piece *part_start, *part_end;
     part_start = (from == first->length) ? first->next : first;
-    int len = length - (distance - last->length);
+    int len = (distance - last->length);
+    if(len < 0){
+        len = 0;
+    } else {
+        len = length - len;
+    }
     part_end = (len == last->length) ? last->next : last;
     piece_print(part_start);
     piece_print(part_end);
