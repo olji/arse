@@ -24,6 +24,6 @@ void piece_delete_chain(piece *start, piece *end);
 piece *piece_split(piece* p, int index);
 int part_length(part* p);
 void piece_print(piece *p);
-part *part_create(piece *from, piece *to);
+part *part_create(piece *from, piece *to, bool copy=true);
 void part_delete(part *p, bool content = true);
 #endif

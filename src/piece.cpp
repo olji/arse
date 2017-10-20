@@ -38,17 +38,22 @@ piece *piece_copy(piece *p){
     copy->buffer = p->buffer;
     return copy;
 }
-part *part_create(piece *from, piece *to){
+part *part_create(piece *from, piece *to, bool copy){
     part *n = new part;
-    n->first = piece_copy(from);
-    piece *tmp = n->first;
-    while(from != to){
-        tmp->next = piece_copy(tmp->next);
-        tmp->next->prev = tmp;
-        tmp = tmp->next;
-        from = from->next;
+    if(copy){
+        n->first = piece_copy(from);
+        piece *tmp = n->first;
+        while(from != to){
+            tmp->next = piece_copy(tmp->next);
+            tmp->next->prev = tmp;
+            tmp = tmp->next;
+            from = from->next;
+        }
+        n->last = tmp;
+    } else {
+        n->first = from;
+        n->last = to;
     }
-    n->last = tmp;
     n->length = part_length(n);
     return n;
 }
