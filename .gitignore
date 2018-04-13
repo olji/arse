@@ -1,2 +1,5 @@
 arse
 tags
+src/*.d.*
+src/*.d
+src/*.o
