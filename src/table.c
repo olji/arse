@@ -33,6 +33,22 @@ struct table *table_create(char *input){
   debug("begin: %p\n--end: %p", (void*)t->begin, (void*)t->end);
   return t;
 }
+void table_delete(struct table *t, int free_input){
+  struct piece *p = t->begin;
+  while(p != t->end){
+    struct piece *d = p;
+    p = p->next;
+    free(d);
+  }
+  free(p);
+  free(t->buffers[CHANGE]);
+  if(free_input){
+    free(t->buffers[ORIGINAL]);
+  }
+  part_stack_delete(t->history);
+  part_stack_delete(t->future);
+  free(t);
+}
 size_t table_length(struct table *t){
   size_t len = 0;
   struct piece *p = t->begin;
@@ -114,20 +130,6 @@ void table_remove(struct table *t, size_t from, size_t length){
   del_end->next->previous = del_start->previous;
   piece_delete_to(del_start, del_end);
   return;
-}
-void table_delete(struct table *t){
-  struct piece *p = t->begin;
-  while(p != t->end){
-    struct piece *d = p;
-    p = p->next;
-    free(d);
-  }
-  free(p);
-  free(t->buffers[CHANGE]);
-  free(t->buffers[ORIGINAL]);
-  part_stack_delete(t->history);
-  part_stack_delete(t->future);
-  free(t);
 }
 char *table_buffer(struct table *t){
   debug("\n");

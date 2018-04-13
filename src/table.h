@@ -15,9 +15,9 @@ struct table{
   struct part_stack *future;
 };
 struct table *table_create(char *input);
+void table_delete(struct table *t, int free_input);
 int table_insert(struct table *t, size_t index, char *str);
 void table_remove(struct table *t, size_t from, size_t length);
-void table_delete(struct table *t);
 void table_undo(struct table *t);
 void table_redo(struct table *t);
 size_t table_length(struct table *t);

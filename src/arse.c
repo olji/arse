@@ -34,7 +34,9 @@ struct arse *arse_create(char *str, int file){
   return a;
 }
 void arse_delete(struct arse *a){
-  table_delete(a->lines[0]);
+  for(int i = 0; i < a->lines_count; ++i){
+    table_delete(a->lines[i], i == 0);
+  }
   free(a->lines);
   free(a);
 }
@@ -72,9 +74,11 @@ char *arse_buffer(struct arse *a){
   buffer = calloc(total_length + a->lines_count, sizeof(char));
   total_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
-    strcpy(buffer + total_length, table_buffer(a->lines[i]));
+    char *t_buffer = table_buffer(a->lines[i]);
+    strcpy(buffer + total_length, t_buffer);
     total_length += a->lines[i]->length;
     buffer[total_length++] = '\n';
+    free(t_buffer);
   }
   buffer[total_length-1] = 0;
   return buffer;
