@@ -77,7 +77,11 @@ int table_insert(struct table *t, size_t index, char *str){
     p = p->next;
     distance += p->length;
   }
-  index = index - (distance - p->length);
+  if(p != t->end ){
+    index = index - (distance - p->length);
+  } else {
+    index = p->length;
+  }
   bool even = p->length == index;
   struct part *range;
   if(even){
@@ -90,7 +94,12 @@ int table_insert(struct table *t, size_t index, char *str){
   if(!even){
     piece_split(p, index);
   }
-  piece_insert_after(p, n);
+  /* TODO: Some nicer way to handle when inserting at end of piece chain */
+  if(p != t->end){
+    piece_insert_after(p, n);
+  } else {
+    piece_insert_before(p, n);
+  }
   p->length = index;
   return 0;
 }
@@ -132,9 +141,9 @@ void table_remove(struct table *t, size_t from, size_t length){
   return;
 }
 char *table_buffer(struct table *t){
-  debug("\n");
-  table_print_series(t, t->begin, t->end);
-  debug("CHANGEBUF: %s\n", t->buffers[CHANGE]);
+  /* debug("\n"); */
+  /* table_print_series(t, t->begin, t->end); */
+  /* debug("CHANGEBUF: %s\n", t->buffers[CHANGE]); */
   struct piece *p = t->begin;
   char *buffer = calloc((t->length + 1), sizeof(char));
   size_t copied = 0;
@@ -166,6 +175,10 @@ void table_print_piece(struct table *t, struct piece *p){
 void table_undo(struct table *t){
   if(t->history->pointer > 0){
     struct part *p = part_stack_pop(t->history);
+    struct piece *begin = p->first->previous->next;
+    struct piece *end = p->last->next->previous;
+    t->length -= piece_chain_length(begin, end);
+    t->length += piece_chain_length(p->first, p->last);
     part_stack_push(t->future, part_create(p->first->previous->next, p->last->next->previous, 1));
     piece_delete_to(p->first->previous->next, p->last->next->previous);
     p->first->previous->next = p->first;
@@ -178,6 +191,10 @@ void table_undo(struct table *t){
 void table_redo(struct table *t){
   if(t->future->pointer > 0){
     struct part *p = part_stack_pop(t->future);
+    struct piece *begin = p->first->previous->next;
+    struct piece *end = p->last->next->previous;
+    t->length -= piece_chain_length(begin, end);
+    t->length += piece_chain_length(p->first, p->last);
     part_stack_push(t->history, part_create(p->first->previous->next, p->last->next->previous, 1));
     piece_delete_to(p->first->previous->next, p->last->next->previous);
     p->first->previous->next = p->first;

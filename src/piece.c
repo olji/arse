@@ -31,6 +31,13 @@ void piece_insert_before(struct piece *after, struct piece *p){
   after->previous->next = p;
   after->previous = p;
 }
+size_t piece_chain_length(struct piece *start, struct piece *end){
+  if(start == end){
+    return start->length;
+  } else {
+    return start->length + piece_chain_length(start->next, end);
+  }
+}
 struct piece *piece_split(struct piece *p, int index){
   debug("piece_split created ");
   struct piece *new = piece_create(p->start + index, p->length - index, p->buffer);

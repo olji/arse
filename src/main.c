@@ -60,6 +60,22 @@ int main(int argc, char **argv){
     strcpy(str, c);
     editor = arse_create(str, 0);
     assert(arse_buffer(editor), "First\nSecond");
+    /* Insert on second line through index */
+    arse_insert(editor, 9, "On second line");
+    /* Since we don't store newlines explicitly, they're not counted in the index */
+    assert(arse_buffer(editor), "First\nSecoOn second linend");
+    /* Insert on first line even though index is larger */
+    arse_insert_at_line(editor, 0, 15, "On first line");
+    assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
+    arse_undo(editor);
+    assert(arse_buffer(editor), "First\nSecoOn second linend");
+    arse_redo(editor);
+    assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
+    arse_undo_line(editor, 1);
+    assert(arse_buffer(editor), "FirstOn first line\nSecond");
+    arse_redo_line(editor, 1);
+    assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
+
     arse_delete(editor);
     return 0;
 
