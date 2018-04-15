@@ -92,15 +92,24 @@ int table_stack_push(struct table_stack *s, struct table *p){
   return 0;
 }
 struct table *table_stack_pop_instance(struct table_stack *s, struct table *t){
-  size_t pos = s->pointer - 1;
-  while(s->stack[pos] != t){
+  if(s->pointer == 0){
+    return NULL;
+  }
+  int pos = --s->pointer;
+  struct table *result = NULL;
+  while(s->stack[pos] != t && pos > 0){
     --pos;
   }
-  while(pos < s->pointer - 1){
-    s->stack[pos] = s->stack[++pos];
+  if(s->stack[pos] == t){
+    result = t;
   }
-  --s->pointer;
-  return t;
+  if(result != NULL){
+    while(pos < s->pointer){
+      s->stack[pos] = s->stack[pos + 1];
+      ++pos;
+    }
+  }
+  return result;
 }
 void table_stack_clean(struct table_stack *s){
   free(s->stack);
@@ -124,4 +133,5 @@ void table_stack_clean_instance(struct table_stack *s, struct table *t){
       ++swap_index;
     }
   }
+  s->pointer -= swap_index;
 }

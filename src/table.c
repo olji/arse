@@ -30,7 +30,6 @@ struct table *table_create(char *input){
 
   t->history = part_stack_create();
   t->future = part_stack_create();
-  debug("begin: %p\n--end: %p", (void*)t->begin, (void*)t->end);
   return t;
 }
 void table_delete(struct table *t, int free_input){

@@ -54,7 +54,7 @@ int main(int argc, char **argv){
     /* TODO: Multiline support and test */
     arse_delete(editor);
 
-    printf("###MULTILINE TESTS###\n");
+    debug("###MULTILINE TESTS###\n");
     c = "First\nSecond";
     str = malloc(sizeof(char) * strlen(c) + 1);
     strcpy(str, c);
@@ -67,6 +67,7 @@ int main(int argc, char **argv){
     /* Insert on first line even though index is larger */
     arse_insert_at_line(editor, 0, 15, "On first line");
     assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
+
     arse_undo(editor);
     assert(arse_buffer(editor), "First\nSecoOn second linend");
     arse_redo(editor);
@@ -74,6 +75,14 @@ int main(int argc, char **argv){
     arse_undo_line(editor, 1);
     assert(arse_buffer(editor), "FirstOn first line\nSecond");
     arse_redo_line(editor, 1);
+    assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
+    arse_undo(editor);
+    assert(arse_buffer(editor), "FirstOn first line\nSecond");
+    arse_undo(editor);
+    assert(arse_buffer(editor), "First\nSecond");
+    arse_redo_line(editor, 1);
+    assert(arse_buffer(editor), "First\nSecoOn second linend");
+    arse_redo_line(editor, 0);
     assert(arse_buffer(editor), "FirstOn first line\nSecoOn second linend");
 
     arse_delete(editor);

@@ -78,16 +78,21 @@ int arse_remove_at_line(struct arse *a, size_t line, size_t index, size_t length
 }
 void arse_undo(struct arse *a){
   struct table *t = table_stack_pop(a->action_history);
-  table_stack_push(a->action_future, t);
-  table_undo(t);
+  if(t != NULL){
+    table_stack_push(a->action_future, t);
+    table_undo(t);
+  }
 }
 void arse_redo(struct arse *a){
   struct table *t = table_stack_pop(a->action_future);
-  table_stack_push(a->action_history, t);
-  table_redo(t);
+  if(t != NULL){
+    table_stack_push(a->action_history, t);
+    table_redo(t);
+  }
 }
 void arse_undo_line(struct arse *a, size_t line){
   table_stack_pop_instance(a->action_history, a->lines[line]);
+  table_stack_push(a->action_future, a->lines[line]);
   table_undo(a->lines[line]);
 }
 void arse_redo_line(struct arse *a, size_t line){

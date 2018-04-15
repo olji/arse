@@ -9,11 +9,9 @@ struct piece *piece_create(int start, int length, enum buffertype buffer){
   p->start = start;
   p->length = length;
   p->buffer = buffer;
-  debug("New piece(s-l-b): %d - %d - %d\n", start, length, buffer);
   return p;
 }
 struct piece *piece_copy(struct piece *p){
-  debug("piece_copy created ");
   struct piece *new = piece_create(p->start, p->length, p->buffer);
   new->next = p->next;
   new->previous = p->previous;
@@ -39,7 +37,6 @@ size_t piece_chain_length(struct piece *start, struct piece *end){
   }
 }
 struct piece *piece_split(struct piece *p, int index){
-  debug("piece_split created ");
   struct piece *new = piece_create(p->start + index, p->length - index, p->buffer);
   p->length = p->length - new->length;
   piece_insert_after(p, new);
