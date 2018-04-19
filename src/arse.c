@@ -13,26 +13,29 @@ struct arse *arse_create(char *str, int file){
   a->action_history = table_stack_create();
   a->action_future = table_stack_create();
   if(file){
-    printf("Not implemented");
-    panic();
-    /* fp = fopen(str.c_str(), "r"); */
-    /* if(fp){ */
-    /*   std::string input; */
-    /*   fseek(fp, 0, SEEK_END); */
-    /*   int file_len = std::ftell(fp); */
-    /*   fseek(fp, 0, SEEK_SET); */
-    /*   input.resize(file_len); */
-    /*   fread(&input[0], 1, file_len, fp); */
-    /* } */
-  } else {
-    a->lines_count = strinst(str, '\n');
-    a->lines = malloc(sizeof(struct table*) * (a->lines_count + 1));
-    int i = 0;
-    char *token = strtok(str,"\n");
-    while(token != NULL){
-      a->lines[i++] = table_create(token);
-      token = strtok(NULL,"\n");
+    a->filename = str;
+    a->fp = fopen(str, "rb");
+    if(a->fp){
+      fseek(a->fp, 0, SEEK_END);
+      int file_len = ftell(a->fp);
+      debug("file_len: %d\n", file_len);
+      fseek(a->fp, 0, SEEK_SET);
+      str = malloc(sizeof(char) * file_len);
+      fread(&str[0], 1, file_len, a->fp);
+      debug("read: %s\n", str);
+      debug("hello");
     }
+  }
+  a->lines_count = strinst(str, '\n');
+  a->lines = malloc(sizeof(struct table*) * (a->lines_count + 1));
+  int i = 0;
+  char *token = strtok(str,"\n");
+  while(token != NULL){
+    a->lines[i++] = table_create(token);
+    token = strtok(NULL,"\n");
+  }
+  if(a->lines_count > i){
+    --a->lines_count;
   }
   return a;
 }
@@ -103,6 +106,9 @@ int arse_save(struct arse *a){
   return 0;
 }
 void arse_backup(struct arse *a){
+}
+char *arse_get_line(struct arse *a, size_t line){
+  return table_buffer(a->lines[line]);
 }
 char *arse_buffer(struct arse *a){
   char *buffer;

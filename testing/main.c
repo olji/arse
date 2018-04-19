@@ -6,7 +6,7 @@
 
 #include "testing.h"
 
-void exec_command(struct arse *editor, char mode);
+int exec_command(struct arse *editor, char mode);
 int main(int argc, char **argv){
   if(argc < 2){
     char *c = "Testing";
@@ -88,29 +88,43 @@ int main(int argc, char **argv){
 
   } else {
     struct arse *editor = arse_create(argv[1], 1);
-    /* char mode; */
-    printf("Not yet implemented");
-    /* do{ */
-    /*   std::cin >> mode; */
-    /*   exec_command(editor, mode); */
-    /*   printf("%s\n", arse_buffer(editor)); */
-    /* } while(mode != 'q'); */
+    int result = 0;
+    while(!feof(stdin) && result != 2){
+      printf(": ");
+      char command = getc(stdin);
+      if(command != '\n'){
+	result = exec_command(editor, command);
+	getc(stdin);
+      } else {
+	printf("\n");
+      }
+    }
     arse_delete(editor);
   }
 }
-void exec_command(struct arse *editor, char mode){
-  /* int index; */
-  /* std::string text; */
-  /* switch(mode){ */
-  /* case 'i': */
-  /*   std::cin >> index; */
-  /*   std::cin >> text; */
-  /*   editor->insert(index, text); */
-  /*   break; */
-  /* case 'u': */
-  /*   editor->undo(); */
-  /*   break; */
-  /* default: */
-  /*   std::cout << "Not a command" << std::endl; */
-  /* } */
+int exec_command(struct arse *editor, char mode){
+  size_t line = 0;
+  size_t index = 0;
+  char *text = malloc(sizeof(*text) * 254);
+
+  switch(mode){
+  case 'i':
+    scanf("%zu", &line);
+    scanf("%zu", &index);
+    scanf("%s", text);
+    arse_insert_at_line(editor, line, index, text);
+    break;
+  case 'u':
+    arse_undo(editor);
+    break;
+  case 'p':
+    printf("%s\n", arse_buffer(editor));
+    break;
+  case 'q':
+    return 2;
+  default:
+    printf("?\n");
+    return 0;
+  }
+  return 1;
 }

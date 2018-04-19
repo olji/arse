@@ -6,15 +6,15 @@ TSOURCES=$(wildcard testing/*.c)
 DEBUG=-DDEBUG
 PWD=$(shell pwd)
 OBJS=$(SOURCES:.c=.o)
-TOBJS=$(TSOURCES:.c=.o)
 DEPS=$(OBJS:.o=.d)
 
-.PHONY: clean
+.PHONY: clean test
+
+$(LIB): $(OBJS)
+	gcc --shared -o $(LIB) $(OBJS)
 
 test: $(LIB)
 	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
-$(LIB): $(OBJS)
-	gcc --shared -o $(LIB) $(OBJS)
 
 release:
 	make clean
@@ -24,6 +24,6 @@ release:
 	$(CC) $(CFLAGS) $(DEBUG) -MMD -MP -c $< -o $@
 
 clean:
-	$(RM) $(OBJS) $(TOJBS) $(DEPS) $(LIB)
+	$(RM) $(OBJS) $(DEPS) $(LIB)
 
 -include $(DEPS)
