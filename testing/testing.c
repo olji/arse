@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "testing.h"
-#include "panic.h"
-#include "debug.h"
 int assert(char *input, char *expected){
   if(strcmp(input, expected)){
     fprintf(stderr, "Expected: \"%s\"\n", expected);

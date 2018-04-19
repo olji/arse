@@ -3,10 +3,8 @@
 #include <string.h>
 
 #include "arse.h"
-#include "testing.h"
-#include "panic.h"
 
-#include "debug.h"
+#include "testing.h"
 
 void exec_command(struct arse *editor, char mode);
 int main(int argc, char **argv){
@@ -54,7 +52,7 @@ int main(int argc, char **argv){
     /* TODO: Multiline support and test */
     arse_delete(editor);
 
-    debug("###MULTILINE TESTS###\n");
+    fprintf(stderr, "###MULTILINE TESTS###\n");
     c = "First\nSecond";
     str = malloc(sizeof(char) * strlen(c) + 1);
     strcpy(str, c);

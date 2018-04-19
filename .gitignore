@@ -1,5 +1,6 @@
-arse
+test
+*.so
 tags
-src/*.d.*
-src/*.d
-src/*.o
+**/*.d.*
+**/*.d
+**/*.o
