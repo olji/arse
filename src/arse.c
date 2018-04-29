@@ -10,11 +10,12 @@
 
 struct arse *arse_create(char *str, int file){
   struct arse *a = malloc(sizeof(struct arse));
+  a->fp = NULL;
   a->action_history = table_stack_create();
   a->action_future = table_stack_create();
   if(file){
     a->filename = str;
-    a->fp = fopen(str, "rb");
+    a->fp = fopen(str, "r+");
     if(a->fp){
       fseek(a->fp, 0, SEEK_END);
       int file_len = ftell(a->fp);
@@ -46,6 +47,9 @@ void arse_delete(struct arse *a){
   table_stack_delete(a->action_history);
   table_stack_delete(a->action_future);
   free(a->lines);
+  if(a->fp != NULL){
+    fclose(a->fp);
+  }
   free(a);
 }
 int arse_insert(struct arse *a, size_t index, char *str){
@@ -102,7 +106,17 @@ void arse_redo_line(struct arse *a, size_t line){
   table_stack_push(a->action_history, a->lines[line]);
   table_redo(a->lines[line]);
 }
-int arse_save(struct arse *a){
+int arse_save(struct arse *a, char *filename){
+  FILE *fp = NULL;
+  if(strcmp(filename, a->filename) == 0){
+    fp = a->fp;
+  } else {
+
+  }
+  fseek(fp, 0, SEEK_SET);
+  char *buf = arse_buffer(a);
+  fwrite(buf, strlen(buf), 1, fp);
+  fflush(fp);
   return 0;
 }
 void arse_backup(struct arse *a){

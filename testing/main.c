@@ -120,6 +120,9 @@ int exec_command(struct arse *editor, char mode){
   case 'p':
     printf("%s\n", arse_buffer(editor));
     break;
+  case 'w':
+    arse_save(editor, editor->filename);
+    break;
   case 'q':
     return 2;
   default:
