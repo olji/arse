@@ -13,13 +13,13 @@
 struct table *table_create(char *input){
   struct table *t = malloc(sizeof(struct table));
   t->length = strlen(input);
-  t->buffers[ORIGINAL] = input;
-  t->buffers[CHANGE] = malloc(sizeof(char));
-  t->buffers[CHANGE][0] = 0;
-  t->begin = piece_create(0,0,NONE);
-  t->end = piece_create(0,0,NONE);
+  t->buffers[ARSE_ORIGINAL] = input;
+  t->buffers[ARSE_CHANGE] = malloc(sizeof(char));
+  t->buffers[ARSE_CHANGE][0] = 0;
+  t->begin = piece_create(0,0,ARSE_NONE);
+  t->end = piece_create(0,0,ARSE_NONE);
 
-  struct piece *p = piece_create(0,strlen(input),ORIGINAL);
+  struct piece *p = piece_create(0,strlen(input),ARSE_ORIGINAL);
 
   t->begin->next = p;
   t->begin->previous = t->begin;
@@ -40,9 +40,9 @@ void table_delete(struct table *t, int free_input){
     free(d);
   }
   free(p);
-  free(t->buffers[CHANGE]);
+  free(t->buffers[ARSE_CHANGE]);
   if(free_input){
-    free(t->buffers[ORIGINAL]);
+    free(t->buffers[ARSE_ORIGINAL]);
   }
   part_stack_delete(t->history);
   part_stack_delete(t->future);
@@ -60,16 +60,16 @@ size_t table_length(struct table *t){
 int table_insert(struct table *t, size_t index, char *str){
   struct piece *p = t->begin;
   size_t length = strlen(str);
-  size_t start = strlen(t->buffers[CHANGE]);
-  struct piece *n = piece_create(start, length, CHANGE);
-  char *tmp = realloc(t->buffers[CHANGE], sizeof(char) * (start + length + 1));
+  size_t start = strlen(t->buffers[ARSE_CHANGE]);
+  struct piece *n = piece_create(start, length, ARSE_CHANGE);
+  char *tmp = realloc(t->buffers[ARSE_CHANGE], sizeof(char) * (start + length + 1));
   if(tmp != NULL){
     tmp[start+length] = 0;
-    t->buffers[CHANGE] = tmp;
+    t->buffers[ARSE_CHANGE] = tmp;
   } else {
     return 1;
   }
-  strcpy(t->buffers[CHANGE] + start, str);
+  strcpy(t->buffers[ARSE_CHANGE] + start, str);
   t->length += length;
   int distance = p->length;
   while(distance < index && p != t->end){
@@ -147,7 +147,7 @@ char *table_buffer(struct table *t){
   char *buffer = calloc((t->length + 1), sizeof(char));
   size_t copied = 0;
   while(p != t->end){
-    if(p->buffer != NONE){
+    if(p->buffer != ARSE_NONE){
       strncpy(buffer + copied, t->buffers[p->buffer] + p->start, p->length);
       copied += p->length;
     }
