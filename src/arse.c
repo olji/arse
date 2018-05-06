@@ -147,4 +147,6 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
   result->length = total_length;
   return result;
 }
+void arse_piece_to_arse(struct arse *a, size_t line, size_t index){
+  table_piece_to_arse(a->lines[line], index);
 }

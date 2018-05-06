@@ -24,4 +24,5 @@ size_t table_length(struct table *t);
 char *table_buffer(struct table *t);
 void table_print_series(struct table *t, struct piece *begin, struct piece *end);
 void table_print_piece(struct table *t, struct piece *p);
+void table_piece_to_arse(struct table *t, size_t index);
 #endif /* TABLE_H */

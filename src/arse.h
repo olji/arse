@@ -26,6 +26,7 @@ void arse_redo(struct arse *a);
 void arse_undo_line(struct arse *a, size_t line);
 void arse_redo_line(struct arse *a, size_t line);
 char *arse_get_line(struct arse *a, size_t line);
+void arse_piece_to_arse(struct arse *a, size_t line, size_t index);
 int arse_save(struct arse *a, char *filename);
 void arse_backup(struct arse *a);
 struct arse_buffer *arse_get_buffer(struct arse *a);

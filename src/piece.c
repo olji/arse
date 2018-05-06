@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "piece.h"
+#include "arse.h"
 
 #include "debug.h"
 
@@ -9,9 +10,17 @@ struct piece *piece_create(int start, int length, enum buffertype buffer){
   p->start = start;
   p->length = length;
   p->buffer = buffer;
+  p->arse = NULL;
   return p;
 }
+struct piece *piece_delete(struct piece *p){
+  if(p->arse != NULL){
+    arse_delete(p->arse);
+  }
+  free(p);
+}
 struct piece *piece_copy(struct piece *p){
+  /* TODO: Should editor be copied or shared? */
   struct piece *new = piece_create(p->start, p->length, p->buffer);
   new->next = p->next;
   new->previous = p->previous;
@@ -49,4 +58,11 @@ void piece_delete_to(struct piece *from, struct piece *to){
     free(del);
   }
   free(to);
+}
+struct arse *piece_to_arse(struct piece *p, char *content){
+  if(p->buffer != ARSE_EDITOR){
+    p->arse = arse_create(content, 0);
+    p->buffer = ARSE_EDITOR;
+  }
+  return p->arse;
 }

@@ -37,9 +37,9 @@ void table_delete(struct table *t, int free_input){
   while(p != t->end){
     struct piece *d = p;
     p = p->next;
-    free(d);
+    piece_delete(d);
   }
-  free(p);
+  piece_delete(p);
   free(t->buffers[ARSE_CHANGE]);
   if(free_input){
     free(t->buffers[ARSE_ORIGINAL]);
@@ -201,5 +201,20 @@ void table_redo(struct table *t){
     part_delete(p, 0);
   } else {
     printf("Buffer already at newest state\n");
+  }
+}
+
+void table_piece_to_arse(struct table *t, size_t index){
+  struct piece *p = t->begin;
+  size_t distance = 0;
+  while(distance + p->length < index && p != t->end){
+    distance += p->length;
+    p = p->next;
+  }
+  if(p->buffer != ARSE_EDITOR && p->buffer != ARSE_NONE){
+    char *content = malloc(sizeof(content) * p->length + 1);
+    content[p->length] = '\0';
+    strncpy(content, t->buffers[p->buffer] + p->start, p->length);
+    piece_to_arse(p, content);
   }
 }
