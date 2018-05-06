@@ -72,6 +72,7 @@ int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
   return 0;
 }
 int arse_remove(struct arse *a, size_t index, size_t length){
+  /* Non-line specific operations aside from undo/redo feels obsolete at this point */
   table_stack_clean(a->action_future);
   table_stack_push(a->action_history, a->lines[0]);
   table_remove(a->lines[0], index, length);
@@ -114,8 +115,8 @@ int arse_save(struct arse *a, char *filename){
 
   }
   fseek(fp, 0, SEEK_SET);
-  char *buf = arse_buffer(a);
-  fwrite(buf, strlen(buf), 1, fp);
+  struct arse_buffer *buf = arse_get_buffer(a);
+  fwrite(buf->buffer, buf->length, 1, fp);
   fflush(fp);
   return 0;
 }
@@ -124,7 +125,7 @@ void arse_backup(struct arse *a){
 char *arse_get_line(struct arse *a, size_t line){
   return table_buffer(a->lines[line]);
 }
-char *arse_buffer(struct arse *a){
+struct arse_buffer *arse_get_buffer(struct arse *a){
   char *buffer;
   size_t total_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
@@ -135,11 +136,15 @@ char *arse_buffer(struct arse *a){
   for(int i = 0; i < a->lines_count; ++i){
     char *t_buffer = table_buffer(a->lines[i]);
     debug("##buffer given: %s\n", t_buffer);
-    strcpy(buffer + total_length, t_buffer);
+    strncpy(buffer + total_length, t_buffer, a->lines[i]->length);
     total_length += a->lines[i]->length;
     buffer[total_length++] = '\n';
     free(t_buffer);
   }
   buffer[total_length-1] = 0;
-  return buffer;
+  struct arse_buffer *result = malloc(sizeof(struct arse_buffer));
+  result->buffer = buffer;
+  result->length = total_length;
+  return result;
+}
 }

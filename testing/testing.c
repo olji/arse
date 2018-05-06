@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "testing.h"
-int assert(char *input, char *expected){
-  if(strcmp(input, expected)){
+#include "arse.h"
+int assert(struct arse_buffer *input, char *expected){
+  if(strcmp(input->buffer, expected)){
     fprintf(stderr, "Expected: \"%s\"\n", expected);
-    fprintf(stderr, "Actual: \"%s\"\n", input);
+    fprintf(stderr, "Actual: \"%s\"\n", input->buffer);
     free(input);
     return 1;
   }

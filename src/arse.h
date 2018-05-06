@@ -1,8 +1,13 @@
 #ifndef ARSE_H
 #define ARSE_H
 #include <stdio.h>
+#include <stddef.h>
 struct table;
 struct table_stack;
+struct arse_buffer{
+  char *buffer;
+  size_t length;
+};
 struct arse{
   struct table **lines;
   struct table_stack *action_history;
@@ -21,7 +26,7 @@ void arse_redo(struct arse *a);
 void arse_undo_line(struct arse *a, size_t line);
 void arse_redo_line(struct arse *a, size_t line);
 char *arse_get_line(struct arse *a, size_t line);
-int arse_save(struct arse *a);
+int arse_save(struct arse *a, char *filename);
 void arse_backup(struct arse *a);
-char *arse_buffer(struct arse *a);
+struct arse_buffer *arse_get_buffer(struct arse *a);
 #endif /* ARSE_H */
