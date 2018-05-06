@@ -7,9 +7,11 @@ int assert(struct arse_buffer *input, char *expected){
   if(strcmp(input->buffer, expected)){
     fprintf(stderr, "Expected: \"%s\"\n", expected);
     fprintf(stderr, "Actual: \"%s\"\n", input->buffer);
+    free(input->buffer);
     free(input);
     return 1;
   }
+  free(input->buffer);
   free(input);
   return 0;
 }

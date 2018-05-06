@@ -120,7 +120,7 @@ void table_stack_clean(struct table_stack *s){
 void table_stack_clean_instance(struct table_stack *s, struct table *t){
   size_t swap_index = 0;
   size_t pos = 0;
-  while(pos < s->pointer){
+  while(pos < s->pointer && swap_index < s->pointer){
     if(s->stack[pos] == t){
       ++pos;
     }

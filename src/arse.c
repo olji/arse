@@ -72,7 +72,7 @@ int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
   return 0;
 }
 int arse_remove(struct arse *a, size_t index, size_t length){
-  /* Non-line specific operations aside from undo/redo feels obsolete at this point */
+  /* Non-line specific removal and insertion is meant for internal editors primarily */
   table_stack_clean(a->action_future);
   table_stack_push(a->action_history, a->lines[0]);
   table_remove(a->lines[0], index, length);
@@ -138,7 +138,11 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
     debug("##buffer given: %s\n", t_buffer);
     strncpy(buffer + total_length, t_buffer, a->lines[i]->length);
     total_length += a->lines[i]->length;
-    buffer[total_length++] = '\n';
+    if(i < a->lines_count - 1){
+      buffer[total_length++] = '\n';
+    } else {
+      buffer[total_length++] = '\0';
+    }
     free(t_buffer);
   }
   buffer[total_length-1] = 0;

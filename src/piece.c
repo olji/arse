@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "piece.h"
 #include "arse.h"
 
@@ -63,6 +64,10 @@ struct arse *piece_to_arse(struct piece *p, char *content){
   if(p->buffer != ARSE_EDITOR){
     p->arse = arse_create(content, 0);
     p->buffer = ARSE_EDITOR;
+    if(p->length != strlen(content)){
+      fprintf(stderr, "WARNING: Arsified node had mismatching lengths\n");
+    }
+    p->length = strlen(content);
   }
   return p->arse;
 }

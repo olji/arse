@@ -84,7 +84,11 @@ int main(int argc, char **argv){
     assert(arse_get_buffer(editor), "FirstOn first line\nSecoOn second linend");
 
     /* Arsify */
+    fprintf(stderr, "###SUBARSE TESTS###\n");
     arse_piece_to_arse(editor, 0, 1);
+    assert(arse_get_buffer(editor), "FirstOn first line\nSecoOn second linend");
+    arse_insert_at_line(editor, 0, 1, "Hello");
+    assert(arse_get_buffer(editor), "FHelloirstOn first line\nSecoOn second linend");
 
     arse_delete(editor);
     return 0;
