@@ -20,7 +20,7 @@ struct piece{
 };
 
 struct piece *piece_create(int start, int length, enum buffertype buffer);
-struct piece *piece_delete(struct piece *p);
+void piece_delete(struct piece *p);
 void piece_insert_before(struct piece *after, struct piece *p);
 void piece_insert_after(struct piece *before, struct piece *p);
 size_t piece_chain_length(struct piece *start, struct piece *end);

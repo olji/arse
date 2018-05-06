@@ -13,7 +13,7 @@ struct piece *piece_create(int start, int length, enum buffertype buffer){
   p->arse = NULL;
   return p;
 }
-struct piece *piece_delete(struct piece *p){
+void piece_delete(struct piece *p){
   if(p->arse != NULL){
     arse_delete(p->arse);
   }
