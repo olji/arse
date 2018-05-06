@@ -76,7 +76,7 @@ int table_insert(struct table *t, size_t index, char *str){
     p = p->next;
     distance += p->length;
   }
-  if(p != t->end ){
+  if(p != t->end){
     index = index - (distance - p->length);
   } else {
     index = p->length;
