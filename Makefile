@@ -1,4 +1,5 @@
 LIB=libarse.so
+TEST=arsetest
 CC=gcc
 CFLAGS=-g -Wfatal-errors -Wpedantic -Wall -fPIC
 SOURCES=$(wildcard src/*.c)
@@ -10,11 +11,11 @@ DEPS=$(OBJS:.o=.d)
 
 .PHONY: clean test
 
+$(TEST): $(LIB)
+	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
+
 $(LIB): $(OBJS)
 	gcc --shared -o $(LIB) $(OBJS)
-
-test: $(LIB)
-	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
 
 release:
 	make clean
