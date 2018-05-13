@@ -21,6 +21,7 @@ void arse_delete(struct arse *a);
 int arse_insert(struct arse *a, size_t index, char *str);
 int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str);
 int arse_remove(struct arse *a, size_t index, size_t length);
+int arse_remove_at_line(struct arse *a, size_t line, size_t index, size_t length);
 void arse_undo(struct arse *a);
 void arse_redo(struct arse *a);
 void arse_undo_line(struct arse *a, size_t line);
