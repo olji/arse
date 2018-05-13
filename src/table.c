@@ -118,7 +118,6 @@ void table_remove(struct table *t, size_t from, size_t length){
   if(first->buffer == ARSE_EDITOR){
     arse_remove(first->arse, from, length);
   } else {
-    table_print_series(t, t->begin, t->end);
     from = from - (distance - first->length);
     struct piece *last = first;
     distance = last->length - from;
