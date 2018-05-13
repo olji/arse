@@ -49,7 +49,6 @@ int main(int argc, char **argv){
     /* Delete in same piece */
     arse_remove(editor, 6, 2);
     assert(arse_get_buffer(editor), "<Hest<METHING>ing");
-    /* TODO: Multiline support and test */
     arse_delete(editor);
 
     fprintf(stderr, "###MULTILINE TESTS###\n");
@@ -89,6 +88,8 @@ int main(int argc, char **argv){
     assert(arse_get_buffer(editor), "FirstOn first line\nSecoOn second linend");
     arse_insert_at_line(editor, 0, 1, "Hello");
     assert(arse_get_buffer(editor), "FHelloirstOn first line\nSecoOn second linend");
+    arse_remove_at_line(editor, 0, 2, 2);
+    assert(arse_get_buffer(editor), "FHloirstOn first line\nSecoOn second linend");
 
     arse_delete(editor);
     return 0;

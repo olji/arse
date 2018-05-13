@@ -114,34 +114,40 @@ void table_remove(struct table *t, size_t from, size_t length){
     first = first->next;
     distance += first->length;
   }
-  from = from - (distance - first->length);
-  struct piece *last = first;
-  distance = last->length - from;
-  while(distance < length && last != t->end){
-    last = last->next;
-    distance += last->length;
-  }
-  struct piece *part_start, *part_end;
-  part_start = (from == first->length) ? first->next : first;
-  int len = (distance - last->length);
-  t->length -= len;
-  if(len < 0){
-    len = 0;
+  t->length -= length;
+  if(first->buffer == ARSE_EDITOR){
+    arse_remove(first->arse, from, length);
   } else {
-    len = length - len;
+    table_print_series(t, t->begin, t->end);
+    from = from - (distance - first->length);
+    struct piece *last = first;
+    distance = last->length - from;
+    while(distance < length && last != t->end){
+      last = last->next;
+      distance += last->length;
+    }
+    struct piece *part_start, *part_end;
+    part_start = (from == first->length) ? first->next : first;
+    int len = (distance - last->length);
+    if(len < 0){
+      len = 0;
+    } else {
+      len = length - len;
+    }
+    part_end = (len == last->length) ? last->next : last;
+    part_stack_push(t->history, part_create(part_start, part_end, 1));
+    struct piece *del_start, *del_end;
+    bool split_end = (part_start == part_end);
+    del_start = (part_start == first) ? piece_split(first, from) : part_start;
+    if(split_end){
+      del_end = piece_split(del_start, length)->previous;
+    } else {
+      del_end = ((part_end == last) ? piece_split(last, len) : part_end)->previous;
+    }
+    del_start->previous->next = del_end->next;
+    del_end->next->previous = del_start->previous;
+    piece_delete_to(del_start, del_end);
   }
-  part_end = (len == last->length) ? last->next : last;
-  part_stack_push(t->history, part_create(part_start, part_end, 1));
-  struct piece *del_start, *del_end;
-  del_start = (part_start == first) ? piece_split(first, from) : part_start;
-  if(part_start == part_end){
-    del_end = piece_split(del_start, len)->previous;
-  } else {
-    del_end = ((part_end == last) ? piece_split(last, len) : part_end)->previous;
-  }
-  del_start->previous->next = del_end->next;
-  del_end->next->previous = del_start->previous;
-  piece_delete_to(del_start, del_end);
   return;
 }
 char *table_buffer(struct table *t){
