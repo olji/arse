@@ -28,7 +28,7 @@ struct part *part_stack_pop(struct part_stack *s){
 }
 struct part *part_stack_top(struct part_stack *s){
   if(s->pointer > 0){
-    return s->stack[s->pointer];
+    return s->stack[s->pointer - 1];
   } else {
     return NULL;
   }
@@ -73,7 +73,7 @@ struct table *table_stack_pop(struct table_stack *s){
 }
 struct table *table_stack_top(struct table_stack *s){
   if(s->pointer > 0){
-    return s->stack[s->pointer];
+    return s->stack[s->pointer - 1];
   } else {
     return NULL;
   }
@@ -124,7 +124,7 @@ void table_stack_clean_instance(struct table_stack *s, struct table *t){
     if(s->stack[pos] == t){
       ++pos;
     }
-    if(s->stack[pos] != t){
+    else{
       if(pos != 0){
 	struct table *tmp = s->stack[pos];
 	s->stack[pos] = s->stack[swap_index];
