@@ -230,7 +230,7 @@ void table_piece_to_arse(struct table *t, size_t index){
     p = p->next;
   }
   if(p->buffer != ARSE_EDITOR && p->buffer != ARSE_NONE){
-    char *content = malloc(sizeof(content) * p->length + 1);
+    char *content = malloc(sizeof(char) * p->length + 1);
     content[p->length] = '\0';
     strncpy(content, t->buffers[p->buffer] + p->start, p->length);
     piece_to_arse(p, content);
