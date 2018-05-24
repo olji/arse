@@ -1,16 +1,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include "arse.h"
+#include "subarsetable.h"
 #include "table.h"
 #include "array.h"
 #include "stack.h"
+#include "part.h"
+#include "piece.h"
 
 #include "debug.h"
 #include "panic.h"
 
+size_t default_hashfunc(char *str, size_t mod){
+  size_t pos = 0;
+  for (int i=0; str[i] != '\0'; ++i){
+    if(str[i] < 61){
+      pos += str[i] + 32;
+    } else {
+      pos += str[i];
+    }
+    pos += pos << 2;
+    pos -= pos >> 3;
+    pos ^= pos << 4;
+  }
+  return pos % mod;
+}
+
 struct arse *arse_create(char *str, int file){
   struct arse *a = malloc(sizeof(struct arse));
   a->fp = NULL;
+  a->masters = NULL;
+  a->masters_count = 0;
   a->action_history = table_stack_create();
   a->action_future = table_stack_create();
   if(file){
@@ -38,6 +58,7 @@ struct arse *arse_create(char *str, int file){
   if(a->lines_count > i){
     --a->lines_count;
   }
+  a->anaas = subarse_table_create(16, &default_hashfunc);
   return a;
 }
 void arse_delete(struct arse *a){
@@ -46,7 +67,11 @@ void arse_delete(struct arse *a){
   }
   table_stack_delete(a->action_history);
   table_stack_delete(a->action_future);
+  subarse_table_delete(a->anaas);
   free(a->lines);
+  if(a->masters != NULL){
+    free(a->masters);
+  }
   if(a->fp != NULL){
     fclose(a->fp);
   }
@@ -158,8 +183,8 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
   for(int i = 0; i < a->lines_count; ++i){
     char *t_buffer = table_buffer(a->lines[i]);
     debug("##buffer given: %s\n", t_buffer);
-    strncpy(buffer + total_length, t_buffer, a->lines[i]->length);
-    total_length += a->lines[i]->length;
+    strncpy(buffer + total_length, t_buffer, strlen(t_buffer));
+    total_length += strlen(t_buffer);
     if(i < a->lines_count - 1){
       buffer[total_length++] = '\n';
     } else {
@@ -173,6 +198,34 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
   result->length = total_length;
   return result;
 }
-void arse_piece_to_arse(struct arse *a, size_t line, size_t index){
-  table_piece_to_arse(a->lines[line], index);
+int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force){
+  struct part *p = table_get_pieces(a->lines[line], index, length); 
+  char *string = calloc(length + 1, sizeof(string));
+  table_get_string(a->lines[line], p->first, p->last, string);
+  debug("arse string: [%s]\n", string);
+  struct arse *ed = subarse_table_find(a->anaas, string);
+  if(ed == NULL){
+    ed = arse_create(string, false);
+    subarse_table_insert(a->anaas, ed);
+  } else {
+    free(string);
+  }
+  struct piece *new = piece_create(0,length,ARSE_EDITOR);
+  if(ed->masters == NULL){
+    ed->masters = malloc(sizeof(struct table*));
+    ed->masters_count = 1;
+  } else {
+    struct table** tmp = realloc(ed->masters, sizeof(struct table*)*(++ed->masters_count));
+    if(tmp != NULL){
+      ed->masters = tmp;
+    } else {
+      return 1;
+    }
+  }
+  ed->masters[ed->masters_count - 1] = a->lines[line];
+  new->arse = ed;
+  new->master = a->lines[line];
+  table_replace_pieces(a->lines[line], p->first, p->last, new);
+  part_delete(p, false);
+  return 0;
 }

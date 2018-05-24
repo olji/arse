@@ -15,9 +15,7 @@ struct piece *piece_create(int start, int length, enum buffertype buffer){
   return p;
 }
 void piece_delete(struct piece *p){
-  if(p->arse != NULL){
-    arse_delete(p->arse);
-  }
+  /* Arse is deleted when cleaning subarse table */
   free(p);
 }
 struct piece *piece_copy(struct piece *p){

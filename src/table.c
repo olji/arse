@@ -62,14 +62,17 @@ int table_insert(struct table *t, size_t index, char *str){
   struct piece *p = t->begin;
   int distance = p->length;
   size_t length = strlen(str);
-  t->length += length;
   while(distance < index && p != t->end){
     p = p->next;
     distance += p->length;
   }
   if(p->buffer == ARSE_EDITOR){
     arse_insert(p->arse, index, str);
+    for(size_t i = 0; i < p->arse->masters_count; ++i){
+      p->arse->masters[i]->length += length;
+    }
   } else {
+    t->length += length;
     size_t start = strlen(t->buffers[ARSE_CHANGE]);
     struct piece *n = piece_create(start, length, ARSE_CHANGE);
     char *tmp = realloc(t->buffers[ARSE_CHANGE], sizeof(char) * (start + length + 1));
@@ -114,10 +117,13 @@ void table_remove(struct table *t, size_t from, size_t length){
     first = first->next;
     distance += first->length;
   }
-  t->length -= length;
   if(first->buffer == ARSE_EDITOR){
     arse_remove(first->arse, from, length);
+    for(size_t i = 0; i < first->arse->masters_count; ++i){
+      first->arse->masters[i]->length -= length;
+    }
   } else {
+    t->length -= length;
     from = from - (distance - first->length);
     struct piece *last = first;
     distance = last->length - from;
@@ -222,6 +228,55 @@ void table_redo(struct table *t){
   }
 }
 
+struct part *table_get_pieces(struct table *t, size_t from, size_t length){
+  struct piece *p = t->begin->next;
+  struct piece *n;
+  size_t distance = 0;
+  while(distance + p->length < from && p != t->end){
+    distance += p->length;
+    p = p->next;
+  }
+  /* FIXME: Detect edges properly */
+  if(distance != from){
+    p = piece_split(p, from - distance);
+    distance += p->previous->length;
+  }
+  n = p;
+  while(distance + n->length < from + length && n != t->end){
+    distance += n->length;
+    n = n->next;
+  }
+  /* FIXME: Detect edges properly */
+  if(distance != from + length){
+    n = piece_split(n, from + length - distance)->previous;
+  }
+  return part_create(p, n, false);
+}
+void table_get_string(struct table *t, struct piece *start, struct piece *end, char *result){
+  size_t copy_index = 0;
+  while(start != end->next){
+    if(start->buffer == ARSE_EDITOR){
+      struct arse_buffer *buffer = arse_get_buffer(start->arse);
+      strncpy(result + copy_index, buffer->buffer, buffer->length);
+      copy_index += buffer->length;
+      free(buffer->buffer);
+      free(buffer);
+    } else {
+      strncpy(result + copy_index, t->buffers[start->buffer] + start->start, start->length);
+      copy_index += start->length;
+    }
+    start = start->next;
+  }
+}
+void table_replace_pieces(struct table *t, struct piece *start, struct piece *end, struct piece *replacement){
+  struct part *p = part_create(start, end, true);
+  replacement->next = end->next;
+  replacement->previous = start->previous;
+  start->previous->next = replacement;
+  end->next->previous = replacement;
+  piece_delete_to(start, end);
+  part_stack_push(t->history, p);
+}
 void table_piece_to_arse(struct table *t, size_t index){
   struct piece *p = t->begin;
   size_t distance = 0;

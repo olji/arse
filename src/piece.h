@@ -17,6 +17,7 @@ struct piece{
 
   /* Editor piece fields, available if buffer == EDITOR */
   struct arse *arse;
+  struct table *master;
 };
 
 struct piece *piece_create(int start, int length, enum buffertype buffer);

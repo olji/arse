@@ -4,6 +4,7 @@
 #include "buffertype.h"
 
 struct part_stack;
+struct part;
 struct piece;
 struct table{
   struct piece *begin;
@@ -24,5 +25,8 @@ size_t table_length(struct table *t);
 char *table_buffer(struct table *t);
 void table_print_series(struct table *t, struct piece *begin, struct piece *end);
 void table_print_piece(struct table *t, struct piece *p);
+struct part *table_get_pieces(struct table *t, size_t from, size_t length);
+void table_get_string(struct table *t, struct piece *start, struct piece *end, char *result);
+void table_replace_pieces(struct table *t, struct piece *start, struct piece *end, struct piece *replacement);
 void table_piece_to_arse(struct table *t, size_t index);
 #endif /* TABLE_H */
