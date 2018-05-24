@@ -181,7 +181,7 @@ void table_print_series(struct table *t, struct piece *begin, struct piece *end)
 }
 void table_print_piece(struct table *t, struct piece *p){
   if(p->buffer == ARSE_EDITOR){
-    debug("[ARSE INSTANCE]\n");
+    debug("[ARSE INSTANCE](%p)\n", (void*)p);
   } else {
     char *s = calloc(sizeof(char), p->length + 1);
     strncpy(s, t->buffers[p->buffer] + p->start, p->length);
