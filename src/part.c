@@ -21,8 +21,8 @@ struct part *part_create(struct piece *first, struct piece *last, int deepcopy){
     /* Copy last */
     p->last = p_tmp;
   } else {
-    p->first = piece_copy(first);
-    p->last = piece_copy(last);
+    p->first = first;
+    p->last = last;
   }
   return p;
 
