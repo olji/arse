@@ -14,11 +14,7 @@
 size_t default_hashfunc(char *str, size_t mod){
   size_t pos = 0;
   for (int i=0; str[i] != '\0'; ++i){
-    if(str[i] < 61){
-      pos += str[i] + 32;
-    } else {
-      pos += str[i];
-    }
+    pos += str[i];
     pos += pos << 2;
     pos -= pos >> 3;
     pos ^= pos << 4;
