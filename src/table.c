@@ -8,6 +8,7 @@
 #include "piece.h"
 #include "stack.h"
 #include "part.h"
+#include "piece.h"
 
 #include "debug.h"
 
@@ -67,9 +68,16 @@ int table_insert(struct table *t, size_t index, char *str){
     p = p->next;
   }
   if(p->buffer == ARSE_EDITOR){
-    arse_insert(p->arse, index, str);
+    int result = arse_insert(p->arse, index - distance, str);
+    if(result != 0){
+      debug("Failed inserting to subarse\n");
+      return result;
+    }
     for(size_t i = 0; i < p->arse->masters_count; ++i){
       p->arse->masters[i]->length += length;
+    }
+    for(size_t i = 0; i < p->arse->hosts_count; ++i){
+      p->arse->hosts[i]->length += length;
     }
   } else {
     t->length += length;
@@ -121,6 +129,9 @@ void table_remove(struct table *t, size_t from, size_t length){
     arse_remove(first->arse, from, length);
     for(size_t i = 0; i < first->arse->masters_count; ++i){
       first->arse->masters[i]->length -= length;
+    }
+    for(size_t i = 0; i < first->arse->hosts_count; ++i){
+      first->arse->hosts[i]->length -= length;
     }
   } else {
     t->length -= length;

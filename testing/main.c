@@ -93,6 +93,8 @@ int main(int argc, char **argv){
     assert(arse_get_buffer(editor), "fHelloirstOn fHelloirst line\nsecoOn second linend");
     arse_remove_at_line(editor, 0, 2, 2);
     assert(arse_get_buffer(editor), "fHloirstOn fHloirst line\nsecoOn second linend");
+    arse_insert_at_line(editor, 0, 14, "Inside second arse");
+    assert(arse_get_buffer(editor), "fHlInside second arseoirstOn fHlInside second arseoirst line\nsecoOn second linend");
 
     arse_delete(editor);
     return 0;

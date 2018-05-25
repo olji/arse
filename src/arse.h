@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
+struct piece;
 struct table;
 struct table_stack;
 struct subarse_table;
@@ -13,11 +14,13 @@ struct arse_buffer{
 struct arse{
   struct table **lines;
   struct table **masters;
+  struct piece **hosts;
   struct table_stack *action_history;
   struct table_stack *action_future;
   struct subarse_table *anaas;
   size_t lines_count;
   size_t masters_count;
+  size_t hosts_count;
   char *filename;
   FILE *fp;
 };

@@ -26,7 +26,9 @@ struct arse *arse_create(char *str, int file){
   struct arse *a = malloc(sizeof(struct arse));
   a->fp = NULL;
   a->masters = NULL;
+  a->hosts = NULL;
   a->masters_count = 0;
+  a->hosts_count = 0;
   a->action_history = table_stack_create();
   a->action_future = table_stack_create();
   if(file){
@@ -67,6 +69,9 @@ void arse_delete(struct arse *a){
   free(a->lines);
   if(a->masters != NULL){
     free(a->masters);
+  }
+  if(a->hosts != NULL){
+    free(a->hosts);
   }
   if(a->fp != NULL){
     fclose(a->fp);
@@ -219,6 +224,18 @@ int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length,
     }
   }
   ed->masters[ed->masters_count - 1] = a->lines[line];
+  if(ed->hosts == NULL){
+    ed->hosts = malloc(sizeof(struct piece*));
+    ed->hosts_count = 1;
+  } else {
+    struct piece** tmp = realloc(ed->hosts, sizeof(struct piece*)*(++ed->hosts_count));
+    if(tmp != NULL){
+      ed->hosts = tmp;
+    } else {
+      return 2;
+    }
+  }
+  ed->hosts[ed->hosts_count - 1] = new;
   new->arse = ed;
   new->master = a->lines[line];
   table_replace_pieces(a->lines[line], p->first, p->last, new);
