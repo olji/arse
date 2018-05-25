@@ -60,11 +60,11 @@ size_t table_length(struct table *t){
 }
 int table_insert(struct table *t, size_t index, char *str){
   struct piece *p = t->begin;
-  int distance = p->length;
+  int distance = 0;
   size_t length = strlen(str);
-  while(distance < index && p != t->end){
-    p = p->next;
+  while(distance + p->length < index && p != t->end){
     distance += p->length;
+    p = p->next;
   }
   if(p->buffer == ARSE_EDITOR){
     arse_insert(p->arse, index, str);
@@ -84,7 +84,7 @@ int table_insert(struct table *t, size_t index, char *str){
     }
     strcpy(t->buffers[ARSE_CHANGE] + start, str);
     if(p != t->end){
-      index = index - (distance - p->length);
+      index = index - distance;
     } else {
       index = p->length;
     }
