@@ -11,7 +11,7 @@ DEPS=$(OBJS:.o=.d)
 
 .PHONY: clean test
 
-$(TEST): $(LIB)
+$(TEST): $(LIB) $(TSOURCES)
 	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
 
 $(LIB): $(OBJS)
