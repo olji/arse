@@ -59,42 +59,44 @@ int main(int argc, char **argv){
     editor = arse_create(str, 0);
     assert(arse_get_buffer(editor), "first\nsecond");
     /* Insert on second line through index */
-    arse_insert(editor, 9, "On second line");
-    /* Since we don't store newlines explicitly, they're not counted in the index */
+    arse_insert(editor, 10, "On second line");
     assert(arse_get_buffer(editor), "first\nsecoOn second linend");
     /* Insert on first line even though index is larger */
+    /* As newlines are explicit now instead of implied, this test will 
+     * cause the insertion to pop up at the start of the next line as
+     * it's placed behind the newline */
     arse_insert_at_line(editor, 0, 15, "On first line");
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
 
     arse_undo(editor);
     assert(arse_get_buffer(editor), "first\nsecoOn second linend");
     arse_redo(editor);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
     arse_undo_line(editor, 1);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecond");
+    assert(arse_get_buffer(editor), "first\nOn first linesecond");
     arse_redo_line(editor, 1);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
     arse_undo(editor);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecond");
+    assert(arse_get_buffer(editor), "first\nOn first linesecond");
     arse_undo(editor);
     assert(arse_get_buffer(editor), "first\nsecond");
     arse_redo_line(editor, 1);
     assert(arse_get_buffer(editor), "first\nsecoOn second linend");
     arse_redo_line(editor, 0);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
 
     /* Arsify */
     fprintf(stderr, "###SUBARSE TESTS###\n");
     arse_piece_to_arse(editor, 0, 0, 5, true);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
-    arse_piece_to_arse(editor, 0, 8, 5, true);
-    assert(arse_get_buffer(editor), "firstOn first line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
+    arse_piece_to_arse(editor, 0, 9, 5, true);
+    assert(arse_get_buffer(editor), "first\nOn first linesecoOn second linend");
     arse_insert_at_line(editor, 0, 1, "Hello");
-    assert(arse_get_buffer(editor), "fHelloirstOn fHelloirst line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "fHelloirst\nOn fHelloirst linesecoOn second linend");
     arse_remove_at_line(editor, 0, 2, 2);
-    assert(arse_get_buffer(editor), "fHloirstOn fHloirst line\nsecoOn second linend");
-    arse_insert_at_line(editor, 0, 14, "Inside second arse");
-    assert(arse_get_buffer(editor), "fHlInside second arseoirstOn fHlInside second arseoirst line\nsecoOn second linend");
+    assert(arse_get_buffer(editor), "fHloirst\nOn fHloirst linesecoOn second linend");
+    arse_insert_at_line(editor, 0, 15, "Inside second arse");
+    assert(arse_get_buffer(editor), "fHlInside second arseoirst\nOn fHlInside second arseoirst linesecoOn second linend");
 
     arse_delete(editor);
     return 0;

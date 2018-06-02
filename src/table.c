@@ -173,9 +173,8 @@ char *table_buffer(struct table *t){
   while(p != t->end){
     if(p->buffer == ARSE_EDITOR){
       struct arse_buffer *buf = arse_get_buffer(p->arse);
-      /* New line at end, ignore in internal editors */
-      strncpy(buffer + copied, buf->buffer, buf->length-1);
-      copied += buf->length - 1;
+      strcpy(buffer + copied, buf->buffer);
+      copied += buf->length;
       free(buf->buffer);
       free(buf);
     } else {

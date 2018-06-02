@@ -48,10 +48,18 @@ struct arse *arse_create(char *str, int file){
   a->lines_count = strinst(str, '\n');
   a->lines = malloc(sizeof(struct table*) * (a->lines_count + 1));
   int i = 0;
-  char *token = strtok(str,"\n");
-  while(token != NULL){
+  char *start, *end, *strend = str + strlen(str) - 1;
+  start = end = str;
+  /* Control for single line input */
+  while(end != strend){
+    end = strchr(start, '\n');
+    if(end == NULL){
+      end = strend;
+    }
+    char *token = calloc(end - start + 2, sizeof(char));
+    strncpy(token, start, end - start + 1);
     a->lines[i++] = table_create(token);
-    token = strtok(NULL,"\n");
+    start = end + 1;
   }
   if(a->lines_count > i){
     --a->lines_count;
@@ -86,6 +94,7 @@ int arse_insert(struct arse *a, size_t index, char *str){
     length += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
+    debug("Failure\n");
     return 1;
   }
   table_stack_clean_instance(a->action_future, a->lines[table]);
@@ -179,21 +188,16 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
   for(int i = 0; i < a->lines_count; ++i){
     total_length += a->lines[i]->length;
   }
-  buffer = calloc(total_length + a->lines_count, sizeof(char));
+  buffer = calloc(total_length + 1, sizeof(char));
   total_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
     char *t_buffer = table_buffer(a->lines[i]);
     debug("##buffer given: %s\n", t_buffer);
     strncpy(buffer + total_length, t_buffer, strlen(t_buffer));
     total_length += strlen(t_buffer);
-    if(i < a->lines_count - 1){
-      buffer[total_length++] = '\n';
-    } else {
-      buffer[total_length++] = '\0';
-    }
     free(t_buffer);
   }
-  buffer[total_length-1] = 0;
+  buffer[total_length] = 0;
   struct arse_buffer *result = malloc(sizeof(struct arse_buffer));
   result->buffer = buffer;
   result->length = total_length;
