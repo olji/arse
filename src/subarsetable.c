@@ -16,9 +16,9 @@ struct subarse_node *subarse_node_create(struct arse *a){
   struct subarse_node *sn = malloc(sizeof(struct subarse_node));
   sn->editor = a;
   sn->next = NULL;
-  struct arse_buffer *buf = arse_get_buffer(a);
-  sn->str = buf->buffer;
-  free(buf);
+  struct arse_string *str = arse_get_string(a);
+  sn->str = str->string;
+  free(str);
   return sn;
 }
 void subarse_table_delete(struct subarse_table *st){

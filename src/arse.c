@@ -172,8 +172,8 @@ int arse_save(struct arse *a, char *filename){
 
   }
   fseek(fp, 0, SEEK_SET);
-  struct arse_buffer *buf = arse_get_buffer(a);
-  fwrite(buf->buffer, buf->length, 1, fp);
+  struct arse_string *str = arse_get_string(a);
+  fwrite(str->string, str->length, 1, fp);
   fflush(fp);
   return 0;
 }
@@ -182,7 +182,7 @@ void arse_backup(struct arse *a){
 char *arse_get_line(struct arse *a, size_t line){
   return table_buffer(a->lines[line]);
 }
-struct arse_buffer *arse_get_buffer(struct arse *a){
+struct arse_string *arse_get_string(struct arse *a){
   char *buffer;
   size_t total_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
@@ -198,9 +198,24 @@ struct arse_buffer *arse_get_buffer(struct arse *a){
     free(t_buffer);
   }
   buffer[total_length] = 0;
-  struct arse_buffer *result = malloc(sizeof(struct arse_buffer));
-  result->buffer = buffer;
+  struct arse_string *result = malloc(sizeof(struct arse_string));
+  result->string = buffer;
   result->length = total_length;
+  return result;
+}
+struct arse_buffer *arse_get_buffer(struct arse *a){
+  struct arse_buffer *result = malloc(sizeof(struct arse_buffer));
+  result->lines_count = a->lines_count;
+  result->lines = malloc(sizeof(char*) * a->lines_count);
+  result->line_lengths = malloc(sizeof(size_t*) * a->lines_count);
+  for(int i = 0; i < a->lines_count; ++i){
+    char *t_buffer = table_buffer(a->lines[i]);
+    result->line_lengths[i] = strlen(t_buffer);
+    result->lines[i] = malloc(strlen(t_buffer) * sizeof(char));
+    debug("##buffer given: %s\n", t_buffer);
+    strcpy(result->lines[i], t_buffer);
+    free(t_buffer);
+  }
   return result;
 }
 int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force){
@@ -245,4 +260,18 @@ int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length,
   table_replace_pieces(a->lines[line], p->first, p->last, new);
   part_delete(p, false);
   return 0;
+}
+
+void arse_buffer_delete(struct arse_buffer *a){
+  for(int i = 0; i < a->lines_count; ++i){
+    free(a->lines[i]);
+    free(a->line_lengths[i]);
+  }
+  free(a->lines);
+  free(a->line_lengths);
+  free(a);
+}
+void arse_string_delete(struct arse_string *a){
+  free(a->string);
+  free(a);
 }

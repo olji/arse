@@ -7,9 +7,14 @@ struct piece;
 struct table;
 struct table_stack;
 struct subarse_table;
-struct arse_buffer{
-  char *buffer;
+struct arse_string{
+  char *string;
   size_t length;
+};
+struct arse_buffer{
+  char **lines;
+  size_t *line_lengths;
+  size_t lines_count;
 };
 struct arse{
   struct table **lines;
@@ -38,5 +43,8 @@ char *arse_get_line(struct arse *a, size_t line);
 int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force);
 int arse_save(struct arse *a, char *filename);
 void arse_backup(struct arse *a);
+void arse_buffer_delete(struct arse_buffer *a);
+void arse_string_delete(struct arse_string *a);
 struct arse_buffer *arse_get_buffer(struct arse *a);
+struct arse_string *arse_get_string(struct arse *a);
 #endif /* ARSE_H */

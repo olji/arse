@@ -172,11 +172,10 @@ char *table_buffer(struct table *t){
   size_t copied = 0;
   while(p != t->end){
     if(p->buffer == ARSE_EDITOR){
-      struct arse_buffer *buf = arse_get_buffer(p->arse);
-      strcpy(buffer + copied, buf->buffer);
-      copied += buf->length;
-      free(buf->buffer);
-      free(buf);
+      struct arse_string *str = arse_get_string(p->arse);
+      strcpy(buffer + copied, str->string);
+      copied += str->length;
+      arse_string_delete(str);
     } else {
       strncpy(buffer + copied, t->buffers[p->buffer] + p->start, p->length);
       copied += p->length;
@@ -266,11 +265,10 @@ void table_get_string(struct table *t, struct piece *start, struct piece *end, c
   size_t copy_index = 0;
   while(start != end->next){
     if(start->buffer == ARSE_EDITOR){
-      struct arse_buffer *buffer = arse_get_buffer(start->arse);
-      strncpy(result + copy_index, buffer->buffer, buffer->length);
-      copy_index += buffer->length;
-      free(buffer->buffer);
-      free(buffer);
+      struct arse_string *str = arse_get_string(start->arse);
+      strncpy(result + copy_index, str->string, str->length);
+      copy_index += str->length;
+      arse_string_delete(str);
     } else {
       strncpy(result + copy_index, t->buffers[start->buffer] + start->start, start->length);
       copy_index += start->length;
