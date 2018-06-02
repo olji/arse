@@ -265,7 +265,6 @@ int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length,
 void arse_buffer_delete(struct arse_buffer *a){
   for(int i = 0; i < a->lines_count; ++i){
     free(a->lines[i]);
-    free(a->line_lengths[i]);
   }
   free(a->lines);
   free(a->line_lengths);
