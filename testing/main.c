@@ -84,19 +84,25 @@ int main(int argc, char **argv){
     assert(arse_get_string(editor), "first\nsecoOn second linend");
     arse_redo_line(editor, 0);
     assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    arse_delete(editor);
 
     /* Arsify */
+    c = "firstOn first line\nsecoOn second linend";
+    str = malloc(sizeof(char) * strlen(c) + 1);
+    strcpy(str, c);
+    editor = arse_create(str, 0);
+    assert(arse_get_string(editor), "firstOn first line\nsecoOn second linend");
     fprintf(stderr, "###SUBARSE TESTS###\n");
     arse_piece_to_arse(editor, 0, 0, 5, true);
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
-    arse_piece_to_arse(editor, 0, 9, 5, true);
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    assert(arse_get_string(editor), "firstOn first line\nsecoOn second linend");
+    arse_piece_to_arse(editor, 0, 8, 5, true);
+    assert(arse_get_string(editor), "firstOn first line\nsecoOn second linend");
     arse_insert_at_line(editor, 0, 1, "Hello");
-    assert(arse_get_string(editor), "fHelloirst\nOn fHelloirst linesecoOn second linend");
+    assert(arse_get_string(editor), "fHelloirstOn fHelloirst line\nsecoOn second linend");
     arse_remove_at_line(editor, 0, 2, 2);
-    assert(arse_get_string(editor), "fHloirst\nOn fHloirst linesecoOn second linend");
-    arse_insert_at_line(editor, 0, 15, "Inside second arse");
-    assert(arse_get_string(editor), "fHlInside second arseoirst\nOn fHlInside second arseoirst linesecoOn second linend");
+    assert(arse_get_string(editor), "fHloirstOn fHloirst line\nsecoOn second linend");
+    arse_insert_at_line(editor, 0, 14, "Inside second arse");
+    assert(arse_get_string(editor), "fHlInside second arseoirstOn fHlInside second arseoirst line\nsecoOn second linend");
 
     arse_delete(editor);
     return 0;
