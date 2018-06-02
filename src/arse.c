@@ -88,9 +88,8 @@ void arse_delete(struct arse *a){
 }
 int arse_insert(struct arse *a, size_t index, char *str){
   size_t table = 0;
-  size_t length = a->lines[table]->length;
-  while(length < index && table < a->lines_count){
-    index -= a->lines[table]->length;
+  size_t length = 0;
+  while(table < a->lines_count - 1 && length + a->lines[table]->length < index){
     length += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
@@ -100,7 +99,7 @@ int arse_insert(struct arse *a, size_t index, char *str){
   table_stack_clean_instance(a->action_future, a->lines[table]);
   table_stack_push(a->action_history, a->lines[table]);
   /* TODO: table_insert should return old string content if node affected was an editor so position in arsetable can be updated */
-  table_insert(a->lines[table], index, str);
+  table_insert(a->lines[table], index - length, str);
   return 0;
 }
 int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
@@ -116,18 +115,18 @@ int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
 }
 int arse_remove(struct arse *a, size_t index, size_t length){
   size_t table = 0;
-  size_t len = a->lines[table]->length;
-  while(len < index && table < a->lines_count){
-    index -= a->lines[table]->length;
+  size_t len = 0;
+  while(table < a->lines_count - 1 && len + a->lines[table]->length < index){
     len += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
+    debug("Failure\n");
     return 1;
   }
   table_stack_clean_instance(a->action_future, a->lines[table]);
   table_stack_push(a->action_history, a->lines[table]);
   /* TODO: table_remove should return old string content if node affected was an editor so position in arsetable can be updated */
-  table_remove(a->lines[table], index, length);
+  table_remove(a->lines[table], index - len, length);
   return 0;
 }
 int arse_remove_at_line(struct arse *a, size_t line, size_t index, size_t length){

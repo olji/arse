@@ -53,37 +53,39 @@ int main(int argc, char **argv){
     arse_delete(editor);
 
     fprintf(stderr, "###MULTILINE TESTS###\n");
-    c = "first\nsecond";
+    c = "first\nsecond\n\nfourth";
     str = malloc(sizeof(char) * strlen(c) + 1);
     strcpy(str, c);
     editor = arse_create(str, 0);
-    assert(arse_get_string(editor), "first\nsecond");
+    assert(arse_get_string(editor), "first\nsecond\n\nfourth");
     /* Insert on second line through index */
     arse_insert(editor, 10, "On second line");
-    assert(arse_get_string(editor), "first\nsecoOn second linend");
+    assert(arse_get_string(editor), "first\nsecoOn second linend\n\nfourth");
     /* Insert on first line even though index is larger */
     /* As newlines are explicit now instead of implied, this test will 
      * cause the insertion to pop up at the start of the next line as
      * it's placed behind the newline */
     arse_insert_at_line(editor, 0, 15, "On first line");
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend\n\nfourth");
 
     arse_undo(editor);
-    assert(arse_get_string(editor), "first\nsecoOn second linend");
+    assert(arse_get_string(editor), "first\nsecoOn second linend\n\nfourth");
     arse_redo(editor);
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend\n\nfourth");
     arse_undo_line(editor, 1);
-    assert(arse_get_string(editor), "first\nOn first linesecond");
+    assert(arse_get_string(editor), "first\nOn first linesecond\n\nfourth");
     arse_redo_line(editor, 1);
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend\n\nfourth");
     arse_undo(editor);
-    assert(arse_get_string(editor), "first\nOn first linesecond");
+    assert(arse_get_string(editor), "first\nOn first linesecond\n\nfourth");
     arse_undo(editor);
-    assert(arse_get_string(editor), "first\nsecond");
+    assert(arse_get_string(editor), "first\nsecond\n\nfourth");
     arse_redo_line(editor, 1);
-    assert(arse_get_string(editor), "first\nsecoOn second linend");
+    assert(arse_get_string(editor), "first\nsecoOn second linend\n\nfourth");
     arse_redo_line(editor, 0);
-    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend");
+    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend\n\nfourth");
+    arse_insert_at_line(editor, 3, 4, "On fourth line");
+    assert(arse_get_string(editor), "first\nOn first linesecoOn second linend\n\nfourOn fourth lineth");
     arse_delete(editor);
 
     /* Arsify */
