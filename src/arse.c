@@ -48,11 +48,11 @@ struct arse *arse_create(char *str, int file){
   a->lines_count = strinst(str, '\n');
   a->lines = malloc(sizeof(struct table*) * (a->lines_count + 1));
   int i = 0;
-  char *start, *end, *strend = str + strlen(str) - 1;
+  char *start, *end, *strend = str + strlen(str);
   start = end = str;
-  /* Control for single line input */
   while(end != strend){
     end = strchr(start, '\n');
+    /* Control for single line input */
     if(end == NULL){
       end = strend;
     }
