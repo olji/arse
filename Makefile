@@ -11,8 +11,9 @@ DEPS=$(OBJS:.o=.d)
 
 .PHONY: clean test
 
-$(TEST): $(LIB) $(TSOURCES)
+$(TEST): $(LIB) $(TSOURCES) fullname.c
 	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
+	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) -g $(DEBUG) -Isrc/ fullname.c $(LIB) -o fullname 
 
 $(LIB): $(OBJS)
 	gcc --shared -o $(LIB) $(OBJS)
