@@ -7,7 +7,7 @@
 
 int main(){
   char *str = "ARSEs representing strings editorially";
-  char *str2 = malloc(strlen(str));
+  char *str2 = malloc(strlen(str) + 1);
   strcpy(str2, str);
   struct arse *editor = arse_create(str2, 0);
   arse_piece_to_arse(editor, 0, 0, 4, true);
