@@ -89,7 +89,7 @@ void arse_delete(struct arse *a){
 int arse_insert(struct arse *a, size_t index, char *str){
   size_t table = 0;
   size_t length = 0;
-  while(table < a->lines_count - 1 && length + a->lines[table]->length < index){
+  while(table < a->lines_count - 1 && length + a->lines[table]->length <= index){
     length += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
