@@ -11,9 +11,9 @@ struct piece{
   struct piece *next;
   struct piece *previous;
   /* Index in piece table buffer */
-  int start;
+  size_t start;
   /* Length of string */
-  int length;
+  size_t length;
   /* Buffer */
   enum buffertype buffer;
 
