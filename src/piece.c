@@ -59,7 +59,9 @@ void piece_delete_to(struct piece *from, struct piece *to){
 }
 struct arse *piece_to_arse(struct piece *p, char *content){
   if(p->buffer != ARSE_EDITOR){
-    p->arse = arse_create(content, 0);
+    p->arse = malloc(sizeof(struct arse));
+    arse_init(p->arse);
+    arse_load_string(p->arse, content);
     p->buffer = ARSE_EDITOR;
     if(p->length != strlen(content)){
       fprintf(stderr, "WARNING: Arsified node had mismatching lengths\n");

@@ -22,8 +22,7 @@ size_t default_hashfunc(char *str, size_t mod){
   return pos % mod;
 }
 
-struct arse *arse_create(char *str, int file){
-  struct arse *a = malloc(sizeof(struct arse));
+void arse_init(struct arse *a){
   a->fp = NULL;
   a->masters = NULL;
   a->hosts = NULL;
@@ -31,49 +30,37 @@ struct arse *arse_create(char *str, int file){
   a->hosts_count = 0;
   a->action_history = table_stack_create();
   a->action_future = table_stack_create();
-  if(file){
-    a->filename = str;
-    a->fp = fopen(str, "r+");
-    if(a->fp){
-      fseek(a->fp, 0, SEEK_END);
-      int file_len = ftell(a->fp);
-      debug("file_len: %d\n", file_len);
-      fseek(a->fp, 0, SEEK_SET);
-      str = malloc(sizeof(char) * file_len);
-      fread(&str[0], 1, file_len, a->fp);
-      debug("read: %s\n", str);
-      debug("hello");
-    }
+  a->lines_count = 0;
+  a->absolute_lines_count = a->lines_count;
+  a->slaves = subarse_table_create(16, &default_hashfunc);
+}
+int arse_open_file(struct arse *a, char *path){
+  size_t length = 0;
+  a->filename = path;
+  a->fp = fopen(path, "r+");
+  char *str;
+  if(a->fp){
+    fseek(a->fp, 0, SEEK_END);
+    length = ftell(a->fp);
+    fseek(a->fp, 0, SEEK_SET);
+    str = calloc(length + 1, sizeof(char));
+    fread(&str[0], 1, length, a->fp);
+  } else {
+    return 1;
   }
-  a->lines_count = strinst(str, '\n');
-  a->lines = malloc(sizeof(struct table*) * (a->lines_count + 1));
-  int i = 0;
-  char *start, *end, *strend = str + strlen(str);
-  start = end = str;
-  while(end != strend){
-    end = strchr(start, '\n');
-    /* Control for single line input */
-    if(end == NULL){
-      end = strend;
-    }
-    char *token = calloc(end - start + 2, sizeof(char));
-    strncpy(token, start, end - start + 1);
-    a->lines[i++] = table_create(token);
-    start = end + 1;
-  }
-  if(a->lines_count > i){
-    --a->lines_count;
-  }
-  a->anaas = subarse_table_create(16, &default_hashfunc);
-  return a;
+  parse_input_string(a, str, length);
+  return 0;
+}
+void arse_load_string(struct arse *a, char *str){
+  parse_input_string(a, str, strlen(str));
 }
 void arse_delete(struct arse *a){
   for(int i = 0; i < a->lines_count; ++i){
-    table_delete(a->lines[i], i == 0);
+    table_delete(a->lines[i], true);
   }
   table_stack_delete(a->action_history);
   table_stack_delete(a->action_future);
-  subarse_table_delete(a->anaas);
+  subarse_table_delete(a->slaves);
   free(a->lines);
   if(a->masters != NULL){
     free(a->masters);
@@ -93,25 +80,17 @@ int arse_insert(struct arse *a, size_t index, char *str){
     length += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
-    debug("Failure\n");
     return 1;
   }
   table_stack_clean_instance(a->action_future, a->lines[table]);
   table_stack_push(a->action_history, a->lines[table]);
   /* TODO: table_insert should return old string content if node affected was an editor so position in arsetable can be updated */
+  a->absolute_lines_count += strinst(str, '\n');
   table_insert(a->lines[table], index - length, str);
   return 0;
 }
 int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
-  size_t table = 0;
-  size_t length = 0;
-  if(index > a->lines[line]->length){
-    index = a->lines[line]->length;
-  }
-  while(table < line){
-    length += a->lines[table++]->length;
-  }
-  return arse_insert(a, index + length, str);
+  return arse_insert(a, arse_index_for_line(a, line, index), str);
 }
 int arse_remove(struct arse *a, size_t index, size_t length){
   size_t table = 0;
@@ -130,15 +109,14 @@ int arse_remove(struct arse *a, size_t index, size_t length){
   return 0;
 }
 int arse_remove_at_line(struct arse *a, size_t line, size_t index, size_t length){
-  size_t table = 0;
-  size_t len = 0;
-  if(index > a->lines[line]->length){
-    index = a->lines[line]->length;
-  }
-  while(table < line){
-    len += a->lines[table++]->length;
-  }
-  return arse_remove(a, index + len, length);
+  return arse_remove(a, arse_index_for_line(a, line, index), length);
+}
+/* TODO: remove empty line as well */
+/* TODO: Include action in undo/redo */
+void arse_new_line(struct arse *a, size_t line){
+  struct table *t = table_create("\n", true);
+  a->lines = table_array_insert_at(a->lines, t, line, a->lines_count++);
+  ++a->absolute_lines_count;
 }
 void arse_undo(struct arse *a){
   struct table *t = table_stack_pop(a->action_history);

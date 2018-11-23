@@ -30,19 +30,25 @@ struct arse_buffer{
   size_t lines_count;
 };
 struct arse{
+  /* TODO: some structure for keeping track of extra lines inside subarses */
   struct table **lines;
   struct table **masters;
   struct piece **hosts;
   struct table_stack *action_history;
   struct table_stack *action_future;
-  struct subarse_table *anaas;
+  struct subarse_table *slaves;
   size_t lines_count;
+  size_t absolute_lines_count;
   size_t masters_count;
   size_t hosts_count;
   char *filename;
+  char *input_string;
   FILE *fp;
 };
-struct arse *arse_create(char *str, int file);
+
+void arse_init(struct arse *a);
+int arse_open_file(struct arse *a, char *path);
+void arse_load_string(struct arse *a, char *str);
 void arse_delete(struct arse *a);
 int arse_insert(struct arse *a, size_t index, char *str);
 int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str);
