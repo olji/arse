@@ -6,6 +6,7 @@
 #include "buffertype.h"
 
 struct arse;
+struct table;
 
 struct piece{
   struct piece *next;
