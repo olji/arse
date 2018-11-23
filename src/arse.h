@@ -7,6 +7,19 @@ struct piece;
 struct table;
 struct table_stack;
 struct subarse_table;
+
+enum backup_scheme{
+  ARSE_BKUP_NONE = 0,
+  ARSE_BKUP_CMD,
+  ARSE_BKUP_TIME
+};
+struct arse_config{
+  enum backup_scheme backup;
+  /* Seconds or commands */
+  size_t interval;
+  /* Directory to put backup files */
+  char *bkup_dir;
+};
 struct arse_string{
   char *string;
   size_t length;
