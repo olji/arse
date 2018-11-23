@@ -40,9 +40,8 @@ void piece_insert_before(struct piece *after, struct piece *p){
 size_t piece_chain_length(struct piece *start, struct piece *end){
   if(start == end){
     return start->length;
-  } else {
-    return start->length + piece_chain_length(start->next, end);
   }
+  return start->length + piece_chain_length(start->next, end);
 }
 struct piece *piece_split(struct piece *p, int index){
   struct piece *new = piece_create(p->start + index, p->length - index, p->buffer);
