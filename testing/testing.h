@@ -1,5 +1,5 @@
 #ifndef TEST_H
 #define TEST_H
-struct arse_string;
-int assert(struct arse_string *input, char *expected);
+struct arse;
+int assert(struct arse *a, char *expected);
 #endif /* TEST_H */
