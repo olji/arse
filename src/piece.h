@@ -1,6 +1,8 @@
 #ifndef PIECE_H
 #define PIECE_H
 
+#include <stdbool.h>
+
 #include "buffertype.h"
 
 struct arse;
@@ -29,4 +31,6 @@ struct arse *piece_to_arse(struct piece *p, char *content);
 struct piece *piece_copy(struct piece *p);
 struct piece *piece_split(struct piece *p, int index);
 void piece_delete_to(struct piece *from, struct piece *to);
+bool piece_equal_strict(struct piece *rhs, struct piece *lhs);
+bool piece_equal_string(struct piece *r, struct piece *l);
 #endif /* PIECE_H */

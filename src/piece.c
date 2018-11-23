@@ -68,3 +68,9 @@ struct arse *piece_to_arse(struct piece *p, char *content){
   }
   return p->arse;
 }
+bool piece_equal_strict(struct piece *r, struct piece *l){
+  return (r->next == l->next && r->previous == l->previous && r->start == l->start && r->length == l->length && r->buffer == l->buffer && r->arse == l->arse && r->master == l->master);
+}
+bool piece_equal_string(struct piece *r, struct piece *l){
+  return (r->start == l->start && r->length == l->length && r->buffer == l->buffer);
+}
