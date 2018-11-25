@@ -11,6 +11,10 @@
 #include "debug.h"
 #include "panic.h"
 
+static void parse_input_string(struct arse *a, char *input, size_t length);
+static struct arse *arse_find_arse(struct arse *a, size_t line, size_t length, struct part *p);
+static int arse_update_arrays(struct arse *a, struct arse *ed, size_t line);
+
 size_t default_hashfunc(char *str, size_t mod){
   size_t pos = 0;
   for (int i=0; str[i] != '\0'; ++i){
@@ -21,7 +25,6 @@ size_t default_hashfunc(char *str, size_t mod){
   }
   return pos % mod;
 }
-
 void arse_init(struct arse *a){
   a->fp = NULL;
   a->masters = NULL;
@@ -132,6 +135,7 @@ void arse_redo(struct arse *a){
     table_redo(t);
   }
 }
+/* TODO: Fix undo/redo for specific lines to work with tables with multiple newlines to do \n being in insertion, or just remove these functions */
 void arse_undo_line(struct arse *a, size_t line){
   table_stack_pop_instance(a->action_history, a->lines[line]);
   table_stack_push(a->action_future, a->lines[line]);
@@ -144,14 +148,15 @@ void arse_redo_line(struct arse *a, size_t line){
 int arse_save(struct arse *a, char *filename){
   FILE *fp = NULL;
   if(strcmp(filename, a->filename) == 0){
-    fp = a->fp;
+    fp = freopen(NULL, "w", a->fp);
   } else {
-
+    return 1;
   }
   fseek(fp, 0, SEEK_SET);
   struct arse_string *str = arse_get_string(a);
   fwrite(str->string, str->length, 1, fp);
   fflush(fp);
+  a->fp = freopen(NULL, "r+", fp);
   return 0;
 }
 void arse_backup(struct arse *a){
@@ -164,17 +169,23 @@ struct arse_string *arse_get_string(struct arse *a){
   size_t total_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
     total_length += a->lines[i]->length;
+    debug("total_length: %zu\n", total_length);
   }
   buffer = calloc(total_length + 1, sizeof(char));
-  total_length = 0;
+  size_t written_length = 0;
   for(int i = 0; i < a->lines_count; ++i){
     char *t_buffer = table_buffer(a->lines[i]);
-    debug("##buffer given: %s\n", t_buffer);
-    strncpy(buffer + total_length, t_buffer, strlen(t_buffer));
-    total_length += strlen(t_buffer);
+    strcpy(buffer + written_length, t_buffer);
+    debug("Adding %zu to written length.\n", strlen(t_buffer));
+    written_length += strlen(t_buffer);
     free(t_buffer);
+    /* FIXME: This free causes segfaults, check it out when insertion with newline doesn't cause undo/redo to fail */
+    //free(t_buffer);
   }
-  buffer[total_length] = 0;
+  if(total_length != written_length){
+    debug("Something is off: %zu -- %zu\n", total_length, written_length);
+  }
+  //buffer[total_length] = 0;
   struct arse_string *result = malloc(sizeof(struct arse_string));
   result->string = buffer;
   result->length = total_length;
@@ -182,37 +193,60 @@ struct arse_string *arse_get_string(struct arse *a){
 }
 struct arse_buffer *arse_get_buffer(struct arse *a){
   struct arse_buffer *result = malloc(sizeof(struct arse_buffer));
-  result->lines_count = a->lines_count;
-  result->lines = malloc(sizeof(char*) * a->lines_count);
-  result->line_lengths = malloc(sizeof(size_t*) * a->lines_count);
-  for(int i = 0; i < a->lines_count; ++i){
-    char *t_buffer = table_buffer(a->lines[i]);
-    result->line_lengths[i] = strlen(t_buffer);
-    result->lines[i] = malloc(strlen(t_buffer) * sizeof(char));
-    debug("##buffer given: %s\n", t_buffer);
-    strcpy(result->lines[i], t_buffer);
+  result->lines = calloc(a->absolute_lines_count, sizeof(char*));
+  result->line_lengths = malloc(sizeof(size_t) * a->absolute_lines_count);
+  for(int line = 0, abs_line = 0; line < a->lines_count; ++line){
+    char *t_buffer = table_buffer(a->lines[line]);
+    //struct table_info state = a->lines[line]->state;
+    size_t copied = 0;
+    size_t end = strlen(t_buffer);
+    char *line_start = t_buffer;
+    while(copied < end){
+      char *line_end = strchr(line_start, '\n');
+      size_t len = 0;
+      if(line_end != NULL){
+        line_end += 1;
+        len = line_end - line_start;
+      } else {
+        len = strlen(line_start);
+      }
+      result->line_lengths[abs_line] = len;
+      result->lines[abs_line] = calloc(len + 1, sizeof(char));
+      if(line_end != NULL){
+        strncpy(result->lines[abs_line], line_start, len);
+      } else {
+        strncpy(result->lines[abs_line], line_start, strlen(line_start));
+      }
+      copied += line_end - line_start + 1;
+      line_start = line_end + 1;
+      ++abs_line;
+    }
     free(t_buffer);
   }
+  result->lines_count = a->absolute_lines_count;
   return result;
 }
-int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force){
-  struct part *p = table_get_pieces(a->lines[line], index, length); 
-  char *string = calloc(length + 1, sizeof(string));
+static struct arse *arse_find_arse(struct arse *a, size_t line, size_t length, struct part *p){
+  char *string = calloc(length + 1, sizeof(char));
   table_get_string(a->lines[line], p->first, p->last, string);
-  debug("arse string: [%s]\n", string);
-  struct arse *ed = subarse_table_find(a->anaas, string);
+  string[length] = 0;
+  struct arse *ed = subarse_table_find(a->slaves, string);
   if(ed == NULL){
-    ed = arse_create(string, false);
-    subarse_table_insert(a->anaas, ed);
+    ed = malloc(sizeof(struct arse));
+    arse_init(ed);
+    arse_load_string(ed, string);
+    subarse_table_insert(a->slaves, ed);
   } else {
     free(string);
   }
-  struct piece *new = piece_create(0,length,ARSE_EDITOR);
+  return ed;
+}
+static int arse_update_arrays(struct arse *a, struct arse *ed, size_t line){
   if(ed->masters == NULL){
-    ed->masters = malloc(sizeof(struct table*));
+    ed->masters = calloc(1, sizeof(struct table*));
     ed->masters_count = 1;
   } else {
-    struct table** tmp = realloc(ed->masters, sizeof(struct table*)*(++ed->masters_count));
+    struct table **tmp = realloc(ed->masters, ++ed->masters_count * sizeof(struct table*));
     if(tmp != NULL){
       ed->masters = tmp;
     } else {
@@ -221,15 +255,25 @@ int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length,
   }
   ed->masters[ed->masters_count - 1] = a->lines[line];
   if(ed->hosts == NULL){
-    ed->hosts = malloc(sizeof(struct piece*));
+    ed->hosts = calloc(1, sizeof(struct piece*));
     ed->hosts_count = 1;
   } else {
-    struct piece** tmp = realloc(ed->hosts, sizeof(struct piece*)*(++ed->hosts_count));
+    struct piece **tmp = realloc(ed->hosts, ++ed->hosts_count * sizeof(struct piece*));
     if(tmp != NULL){
       ed->hosts = tmp;
     } else {
       return 2;
     }
+  }
+  return 0;
+}
+int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force){
+  struct part *p = table_get_pieces(a->lines[line], index, length); 
+  struct arse *ed = arse_find_arse(a, line, length, p);
+  struct piece *new = piece_create(0,length,ARSE_EDITOR);
+  int ret = arse_update_arrays(a, ed, line);
+  if(ret != 0){
+    return ret;
   }
   ed->hosts[ed->hosts_count - 1] = new;
   new->arse = ed;
@@ -250,4 +294,71 @@ void arse_buffer_delete(struct arse_buffer *a){
 void arse_string_delete(struct arse_string *a){
   free(a->string);
   free(a);
+}
+size_t arse_index_for_line(struct arse *a, size_t line, size_t index){
+  size_t table = 0;
+  if(table_state_update(a->lines[table]) != 0){
+    debug("Failed to update table state\n");
+    return 1;
+  }
+
+  struct table_info state = a->lines[table]->state;
+  size_t table_line = 0;
+  size_t passed_lines = 0;
+  size_t len = 0;
+  while(passed_lines < line){
+    len += state.line_lengths[table_line++];
+    ++passed_lines;
+    if(table_line >= state.line_count){
+      /* Still on same line as before */
+      char *str = table_buffer(a->lines[table]);
+      if(str[a->lines[table]->length - 1] != '\n'){
+        --passed_lines;
+      }
+      free(str);
+      if(table_state_update(a->lines[++table]) != 0){
+        return 1;
+      }
+      state = a->lines[table]->state;
+      table_line = 0;
+    }
+  }
+  if(index > a->lines[table]->length){
+    index = a->lines[table]->length;
+  }
+  index = index + len;
+  return index;
+}
+static void parse_input_string(struct arse *a, char *input, size_t length){
+  //if(a->input_string != NULL){
+  //  free(a->input_string);
+  //}
+  //a->input_string = input;
+  debug("string given: %s\n", input);
+  //input = malloc(strlen(input));
+  //strcpy(a->input_string, input);
+  a->lines_count = linecount_get(input);
+  a->lines = calloc(a->lines_count, sizeof(struct table*));
+  int i = 0;
+  char *start, *end, *strend = input + length;
+  start = end = input;
+  while(end != strend){
+    end = strchr(start, '\n');
+    /* Control for single line input */
+    if(end == NULL){
+      end = strend;
+    }
+    /* length + newline */
+    size_t len = end - start + 1;
+    char *token = calloc(len + 1, sizeof(char));
+    strncpy(token, start, len);
+    token[len] = 0;
+    a->lines[i++] = table_create(token, false);
+    start = end + 1;
+  }
+  if(a->lines_count > i){
+    --a->lines_count;
+  }
+  free(input);
+  a->absolute_lines_count = a->lines_count;
 }

@@ -4,6 +4,8 @@
 #include "stack.h"
 #include "table.h"
 #include "part.h"
+#include "piece.h"
+#include "debug.h"
 
 struct part_stack *part_stack_create(){
   struct part_stack *s = malloc(sizeof(struct part_stack));
@@ -51,6 +53,22 @@ void part_stack_clean(struct part_stack *s){
   s->stack = malloc(sizeof(struct part*));
   s->length = 0;
   s->pointer = 0;
+}
+void part_stack_print(struct part_stack *s){
+  for(size_t i = 0; i < s->pointer; ++i){
+    debug("\n\n%zu:\n", i);
+    struct part *p = s->stack[i];
+    struct piece *start = p->first;
+    struct piece *end = p->last;
+    while(start != end){
+      debug("##(%p)##\n", (void*)start);
+      debug("[%p]->", (void*)start->previous);
+      debug("(%p)", (void*)start);
+      debug("->[%p]\n", (void*)start->next);
+      start = start->next;
+    }
+    debug("[%p]->(%p)->[%p]\n", (void*)end->previous, (void*)end, (void*)end->next);
+  }
 }
 
 struct table_stack *table_stack_create(){

@@ -1,7 +1,11 @@
 #ifndef ARRAY_H
 #define ARRAY_H
-void *array_increase(void *block, size_t typesize, int amount);
-void *array_double(void *block, size_t typesize);
-size_t array_size(void *block, size_t typesize);
+struct table;
+struct str_token{
+  char *start;
+  char *end;
+};
+struct table **table_array_insert_at(struct table **block, struct table *object, size_t index, size_t length);
 size_t strinst(char *str, char character);
+size_t linecount_get(char *str);
 #endif /* ARRAY_H */

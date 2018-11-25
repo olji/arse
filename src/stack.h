@@ -19,6 +19,7 @@ struct part *part_stack_pop(struct part_stack *s);
 struct part *part_stack_top(struct part_stack *s);
 int part_stack_push(struct part_stack *s, struct part *p);
 void part_stack_clean(struct part_stack *s);
+void part_stack_print(struct part_stack *s);
 struct table_stack *table_stack_create();
 void table_stack_delete(struct table_stack *s);
 struct table *table_stack_pop(struct table_stack *s);
