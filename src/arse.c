@@ -38,6 +38,7 @@ void arse_init(struct arse *a){
   a->slaves = subarse_table_create(16, &default_hashfunc);
 }
 int arse_open_file(struct arse *a, char *path){
+  /* TODO: Optimize file load to reuse repeated string (Conf option) */
   size_t length = 0;
   a->filename = path;
   a->fp = fopen(path, "r+");
@@ -118,7 +119,8 @@ int arse_remove_at_line(struct arse *a, size_t line, size_t index, size_t length
 /* TODO: Include action in undo/redo */
 void arse_new_line(struct arse *a, size_t line){
   struct table *t = table_create("\n", true);
-  a->lines = table_array_insert_at(a->lines, t, line, a->lines_count++);
+  a->lines = table_array_insert_at(a->lines, t, line);
+  ++a->lines_count;
   ++a->absolute_lines_count;
 }
 void arse_undo(struct arse *a){

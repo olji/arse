@@ -12,7 +12,8 @@ size_t strinst(char *str, char character){
   }
   return occurences;
 }
-struct table **table_array_insert_at(struct table **block, struct table *object, size_t index, size_t length){
+struct table **table_array_insert_at(struct table **block, struct table *object, size_t index){
+  size_t length = array_length(block);
   struct table **tmp  = realloc(block, (length + 1) * sizeof(struct table*));
   if(tmp != NULL){
     block = tmp;
