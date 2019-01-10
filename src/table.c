@@ -281,6 +281,7 @@ void table_undo(struct table *t){
     printf("Buffer already at oldest state\n");
   }
 }
+/* TODO: Make and handle return codes */
 void table_redo(struct table *t){
   if(t->future->pointer > 0){
     struct piece *start = t->begin;
