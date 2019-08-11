@@ -269,7 +269,7 @@ static int arse_update_arrays(struct arse *a, struct arse *ed, size_t line){
   }
   return 0;
 }
-int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool force){
+int arse_piece_to_arse(struct arse *a, size_t line, size_t index, size_t length, bool unique){
   struct part *p = table_get_pieces(a->lines[line], index, length); 
   struct arse *ed = arse_find_arse(a, line, length, p);
   struct piece *new = piece_create(0,length,ARSE_EDITOR);
