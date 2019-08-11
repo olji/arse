@@ -222,11 +222,14 @@ void arse_redo_line(struct arse *a, size_t line){
 }
 int arse_save(struct arse *a, char *filename){
   FILE *fp = NULL;
-  if(strcmp(filename, a->filename) == 0){
-    fp = freopen(NULL, "w", a->fp);
-  } else {
-    return 1;
-  }
+  /* TODO: Potentially use this in conjunction to detecting external file changes */
+  //if(strcmp(filename, a->filename) == 0){
+  //  fp = freopen(NULL, "w", a->fp);
+  //} else {
+  //  fp = fopen(filename, "w");
+  //  return 1;
+  //}
+  fp = fopen(filename, "w");
   fseek(fp, 0, SEEK_SET);
   struct arse_string *str = arse_get_string(a);
   fwrite(str->string, str->length, 1, fp);
