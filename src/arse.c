@@ -87,17 +87,83 @@ void arse_delete(struct arse *a){
 int arse_insert(struct arse *a, size_t index, char *str){
   size_t table = 0;
   size_t length = 0;
+  size_t insertions = strinst(str, '\n') + 1;
+  char *heap_str = calloc(strlen(str) + 1, sizeof(char));
+  strcpy(heap_str, str);
+  char **insertion_strings;
+  insertion_strings = malloc(sizeof(char*) * insertions);
+  if(insertions > 1){
+    size_t i = 0;
+    char *token = strtok(heap_str, "\n");
+    while(token != NULL){
+      insertion_strings[i] = calloc(strlen(token) + ((i==0)?2:1), sizeof(char));
+      strncpy(insertion_strings[i], token, strlen(token));
+      if(i==0){
+        insertion_strings[i][strlen(token)] = '\n';
+      }
+      ++i;
+      token = strtok(NULL, "\n");
+    }
+  } else {
+    insertion_strings[0] = heap_str;
+  }
   while(table < a->lines_count - 1 && length + a->lines[table]->length <= index){
     length += a->lines[table++]->length;
   }
   if(table >= a->lines_count){
     return 1;
   }
+
+  index = index - length;
   table_stack_clean_instance(a->action_future, a->lines[table]);
   table_stack_push(a->action_history, a->lines[table]);
-  /* TODO: table_insert should return old string content if node affected was an editor so position in arsetable can be updated */
-  a->absolute_lines_count += strinst(str, '\n');
-  table_insert(a->lines[table], index - length, str);
+  /* TODO: table_insert should return old string content if node affected was an editor so position in arsetable string key can be updated */
+  a->absolute_lines_count += insertions - 1;
+  if(insertions > 1){
+    /* Newline was in inserted string */
+    /* TODO: Clean up and refactor when code is working */
+    /* TODO: Shrink memory block of initial table */
+    /* TODO: Table lengths need to be updated */
+    /* table_remove(line, index, end), remove part created when inserting first insertion string */
+
+    char *table_last_string = calloc(a->lines[table]->length + 1, sizeof(char));
+    table_get_string(a->lines[table], a->lines[table]->begin, a->lines[table]->end, table_last_string);
+    /* Last newline has to be cropped here */
+    char *last_string = malloc(strlen(table_last_string) - index + strlen(insertion_strings[insertions-1]) + 1);
+    debug("Allocated space: %zu -- ins_string length: %zu -- ls_len: %zu\n", strlen(table_last_string) - index + strlen(insertion_strings[insertions-1]), strlen(insertion_strings[insertions-1]), strlen(table_last_string + index));
+    strcpy(last_string, insertion_strings[insertions-1]);
+    strcpy(last_string + strlen(insertion_strings[insertions-1]), table_last_string + index);
+    table_remove(a->lines[table], index, a->lines[table]->length - index);
+
+    for(int i = 1; i < insertions; ++i){
+      struct table *t = table_create("", true);
+      a->lines = table_array_insert_at(a->lines, t, table + i);
+      ++a->lines_count;
+    }
+
+    /* TODO: Fix memory leak of last_string */
+    insertion_strings[insertions-1] = last_string;
+
+    free(table_last_string);
+  }
+  for(int i = 0; i < insertions; ++i){
+    if(i > 0){
+      index = 0;
+    }
+    char *string = calloc(a->lines[table]->length + 1, sizeof(char));
+    table_get_string(a->lines[table], a->lines[table]->begin, a->lines[table]->end, string);
+    free(string);
+    /* TODO: Combine several insertions into one undo-action, rewrite history and future structures to contain part collections */
+    table_insert(a->lines[table + i], index, insertion_strings[i]);
+    if(insertions > 0 && i == 0){
+      /* TODO: Remove insertion action */
+    }
+    string = calloc(a->lines[table]->length + 1, sizeof(char));
+    table_get_string(a->lines[table], a->lines[table]->begin, a->lines[table]->end, string);
+    free(string);
+  }
+  free(insertion_strings);
+  free(heap_str);
   return 0;
 }
 int arse_insert_at_line(struct arse *a, size_t line, size_t index, char *str){
