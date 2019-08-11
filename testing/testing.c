@@ -11,9 +11,11 @@ int assert(struct arse *a, char *expected){
     fprintf(stderr, "Expected: \"%s\"\n", expected);
     fprintf(stderr, "Actual: \"%s\"\n", input->string);
     ret = 1;
+    fprintf(stderr, "Press enter to continue...");
     getc(stdin);
+  } else {
+    fprintf(stderr, "Got expected: \"%s\"\n", expected);
   }
-  fprintf(stderr, "Got expected: \"%s\"\n", expected);
   arse_string_delete(input);
   return ret;
 }
