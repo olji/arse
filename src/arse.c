@@ -47,8 +47,15 @@ int arse_open_file(struct arse *a, char *path){
     fseek(a->fp, 0, SEEK_END);
     length = ftell(a->fp);
     fseek(a->fp, 0, SEEK_SET);
-    str = calloc(length + 1, sizeof(char));
-    fread(&str[0], 1, length, a->fp);
+    if(length == 0){
+      str = calloc(2, sizeof(char));
+      str[0] = 10;
+    } else {
+      str = calloc(length + 1, sizeof(char));
+      fread(&str[0], 1, length, a->fp);
+    }
+    fclose(a->fp);
+    a->fp = NULL;
   } else {
     return 1;
   }
