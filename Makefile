@@ -2,7 +2,8 @@ LIB=libarse.so
 TEST=arsetest
 CC=gcc
 CFLAGS=-g -Wfatal-errors -Wpedantic -Wall -fPIC
-HFLAGS=-fsanitize=address -fno-omit-frame-pointer
+HFLAGS_UNIX=-fsanitize=address -fno-omit-frame-pointer
+HFLAGS=-fno-omit-frame-pointer
 SOURCES=$(wildcard src/*.c)
 TSOURCES=$(wildcard testing/*.c)
 DEBUG=-DDEBUG
@@ -16,7 +17,7 @@ $(TEST): $(LIB) $(TSOURCES)
 	$(CC) -L$(PWD) -Wl,-rpath=$(PWD) $(HFLAGS) -g $(DEBUG) -Isrc/ $(TSOURCES) $(LIB) -o $@
 
 $(LIB): $(OBJS)
-	gcc --shared -o $(LIB) $(OBJS)
+	$(CC) --shared -o $(LIB) $(OBJS)
 
 test:
 	make clean
