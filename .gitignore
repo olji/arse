@@ -1,4 +1,5 @@
 arsetest
+*.exe
 *.so
 tags
 **/*.d.*
