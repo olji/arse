@@ -6,110 +6,39 @@
 #include "arse.h"
 
 #include "testing.h"
+#include "tests.h"
 
 int exec_command(struct arse *editor, char mode);
 int main(int argc, char **argv){
   if(argc < 2){
-    char *c = "Testing";
-    char *str = malloc(sizeof(char) * strlen(c) + 1);
-    strcpy(str, c);
+    int total=0,passing=0;
 
-    struct arse *editor = malloc(sizeof(struct arse));
-    arse_init(editor);
-    arse_load_string(editor, str);
-    fprintf(stderr, "###SINGLE LINE TESTS###\n");
     fprintf(stderr, "====Insertion test====\n");
-    arse_insert(editor, 4, "<SOMETHING>");
-    assert(editor, "Test<SOMETHING>ing");
-    arse_insert(editor, 0, "<Pere>");
-    assert(editor, "<Pere>Test<SOMETHING>ing");
-    arse_insert(editor, 2, "<Hello>");
-    assert(editor, "<P<Hello>ere>Test<SOMETHING>ing");
-    arse_insert(editor, 4, "<Last one>");
-    assert(editor, "<P<H<Last one>ello>ere>Test<SOMETHING>ing");
-    arse_insert(editor, 11, "<Kidding>");
-    assert(editor, "<P<H<Last o<Kidding>ne>ello>ere>Test<SOMETHING>ing");
-    arse_insert(editor, 2, "New\nline");
-    assert(editor, "<PNew\nline<H<Last o<Kidding>ne>ello>ere>Test<SOMETHING>ing");
+    test(&insert_start);
+    test(&insert_middle);
+    test(&insert_inside_piece);
+    test(&insert_end);
 
     fprintf(stderr, "====Undo/redo test====\n");
-    arse_undo(editor);
-    assert(editor, "<P<H<Last o<Kidding>ne>ello>ere>Test<SOMETHING>ing");
-    arse_undo(editor);
-    assert(editor, "<P<H<Last one>ello>ere>Test<SOMETHING>ing");
-    arse_undo(editor);
-    assert(editor, "<P<Hello>ere>Test<SOMETHING>ing");
-    /* FIXME: Redo behavior not working, potentially part pushed from undo that is broken */
-    arse_redo(editor);
-    assert(editor, "<P<H<Last one>ello>ere>Test<SOMETHING>ing");
-    arse_undo(editor);
-    assert(editor, "<P<Hello>ere>Test<SOMETHING>ing");
+    test(&undo_first);
+    test(&undo_second);
+    test(&undo_redo);
+    test(&redo_undo);
 
     fprintf(stderr, "====Removal test====\n");
-    /* Delete across pieces */
-    arse_remove(editor, 4, 10);
-    assert(editor, "<P<Hest<SOMETHING>ing");
-    /* Delete whole piece */
-    arse_remove(editor, 0, 2);
-    assert(editor, "<Hest<SOMETHING>ing");
-    /* Delete nothing */
-    arse_remove(editor, 6, 0);
-    assert(editor, "<Hest<SOMETHING>ing");
-    /* Delete in same piece */
-    arse_remove(editor, 6, 2);
-    assert(editor, "<Hest<METHING>ing");
+    test(&delete_nothing);
+    test(&delete_inside_piece);
+    test(&delete_whole_piece);
+    test(&delete_across_piece);
 
-    fprintf(stderr, "====Create/Remove new line tests====\n");
-    arse_new_line(editor, 0);
-    assert(editor, "\n<Hest<METHING>ing");
-    arse_delete(editor);
-    return 0;
+    fprintf(stderr, "====Subeditor test====\n");
+    test(&arsify_piece);
 
-    fprintf(stderr, "###MULTILINE TESTS###\n");
-    c = "first\nsecond\n\nfourth";
-    str = malloc(sizeof(char) * strlen(c) + 1);
-    strcpy(str, c);
-    arse_init(editor);
-    arse_load_string(editor, str);
-    assert(editor, "first\nsecond\n\nfourth");
-    /* Insert on second line through index */
-    arse_insert(editor, 10, "On second line");
-    assert(editor, "first\nsecoOn second linend\n\nfourth");
-    /* Insert on first line even though index is larger */
-    /* As newlines are explicit now instead of implied, this test will 
-     * cause the insertion to pop up at the start of the next line as
-     * it's placed behind the newline */
-    arse_insert_at_line(editor, 0, 15, "On first line");
-    assert(editor, "first\nOn first linesecoOn second linend\n\nfourth");
+    print_test_result();
 
-    arse_undo(editor);
-    assert(editor, "first\nsecoOn second linend\n\nfourth");
-    arse_redo(editor);
-    assert(editor, "first\nOn first linesecoOn second linend\n\nfourth");
-    arse_undo(editor);
-    assert(editor, "first\nsecoOn second linend\n\nfourth");
-    fprintf(stderr, "####HMMM2\n");
-    arse_undo(editor);
-    assert(editor, "first\nsecond\n\nfourth");
-    fprintf(stderr, "HMMM\n\n\n");
-    arse_insert_at_line(editor, 3, 4, "On fourth line");
-    assert(editor, "first\nsecond\n\nfourOn fourth lineth");
-    arse_insert_at_line(editor, 3, 0, "New fourth\nNot ");
-    assert(editor, "first\nsecond\n\nNew fourth\nNot fourOn fourth lineth");
-    fprintf(stderr, "new line\n");
-    arse_new_line(editor, 0);
-    fprintf(stderr, "test\n");
-    assert(editor, "\nfirst\nsecond\n\nNew fourth\nNot fourOn fourth lineth");
-    arse_delete(editor);
-
-    /* Arsify */
-    c = "firstOn first line\nsecoOn second linend";
-    str = malloc(sizeof(char) * strlen(c) + 1);
-    strcpy(str, c);
-    arse_init(editor);
-    arse_load_string(editor, str);
-    assert(editor, "firstOn first line\nsecoOn second linend");
-    fprintf(stderr, "###SUBARSE TESTS###\n");
+    // Multi-line stuff,
+    /*
+    // Arsify
     arse_piece_to_arse(editor, 0, 0, 5, true);
     assert(editor, "firstOn first line\nsecoOn second linend");
     arse_piece_to_arse(editor, 0, 8, 5, true);
@@ -124,6 +53,7 @@ int main(int argc, char **argv){
     assert(editor, "fHlInside second arseoirstOn fHlInside second arseoirst line\nsecoOn second linend");
 
     arse_delete(editor);
+    */
     return 0;
 
   } else {
@@ -153,35 +83,35 @@ int exec_command(struct arse *editor, char mode){
   struct arse_buffer *buf;
 
   switch(mode){
-    case 'i':
-      scanf("%zu", &line);
-      scanf("%zu", &index);
-      scanf("%s", text);
-      arse_insert_at_line(editor, line, index, text);
-      break;
-    case 'd':
-      scanf("%zu", &line);
-      scanf("%zu", &index);
-      scanf("%zu", &length);
-      arse_remove_at_line(editor, line, index, length);
-      break;
-    case 'u':
-      arse_undo(editor);
-      break;
-    case 'p':
-      buf = arse_get_buffer(editor);
-      arse_buffer_delete(buf);
-      str = arse_get_string(editor);
-      printf("%s\n", str->string);
-      break;
-    case 'w':
-      arse_save(editor, editor->filename);
-      break;
-    case 'q':
-      return 2;
-    default:
-      printf("?\n");
-      return 0;
+  case 'i':
+    scanf("%zu", &line);
+    scanf("%zu", &index);
+    scanf("%s", text);
+    arse_insert_at_line(editor, line, index, text);
+    break;
+  case 'd':
+    scanf("%zu", &line);
+    scanf("%zu", &index);
+    scanf("%zu", &length);
+    arse_remove_at_line(editor, line, index, length);
+    break;
+  case 'u':
+    arse_undo(editor);
+    break;
+  case 'p':
+    buf = arse_get_buffer(editor);
+    arse_buffer_delete(buf);
+    str = arse_get_string(editor);
+    printf("%s\n", str->string);
+    break;
+  case 'w':
+    arse_save(editor, editor->filename);
+    break;
+  case 'q':
+    return 2;
+  default:
+    printf("?\n");
+    return 0;
   }
   return 1;
 }
