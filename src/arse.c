@@ -44,8 +44,6 @@ void arse_load_string(struct arse *a, char *initial_str){
   parse_input_string(a, initial_str, strlen(initial_str));
 }
 void arse_delete(struct arse *a){
-  //table_stack_delete(a->action_history);
-  //table_stack_delete(a->action_future);
   //subarse_table_delete(a->slaves);
   //if(a->hosts != NULL){
   //free(a->hosts);
@@ -58,6 +56,10 @@ void arse_delete(struct arse *a){
      next = next->next;
   } while (d != a->end);
   piece_delete(a->end);
+
+  part_stack_delete(a->history);
+  part_stack_delete(a->future);
+
   free(a->buffers[ARSE_CHANGE]);
   free(a);
 }
