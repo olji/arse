@@ -2,8 +2,7 @@ LIB=libarse.so
 TEST=arsetest
 CC=gcc
 CFLAGS=-g -Wfatal-errors -Wpedantic -Wall -fPIC
-HFLAGS_UNIX=-fsanitize=address -fno-omit-frame-pointer
-HFLAGS=-fno-omit-frame-pointer
+HFLAGS=-fsanitize=address -fno-omit-frame-pointer
 SOURCES=$(wildcard src/*.c)
 TSOURCES=$(wildcard testing/*.c)
 DEBUG=-DDEBUG
@@ -26,7 +25,7 @@ release:
 	make clean
 	make DEBUG=""
 
-install: 
+install:
 	cp $(LIB) /usr/lib/
 	cp src/arse.h /usr/include/
 
