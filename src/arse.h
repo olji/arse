@@ -42,11 +42,12 @@ struct arse{
   char *buffers[2]; // buffertype ARSE_ORIGINAL and ARSE_CHANGE
   struct piece *begin;
   struct piece *end;
-  //size_t length;
-  //struct table_info state;
 
-  //struct part_stack *history;
-  //struct part_stack *future;
+  size_t arse_count;
+  struct piece **arse_nodes;
+
+  struct part_stack *history;
+  struct part_stack *future;
 };
 
 /// @brief Initialise an arse instance at supplied memory space

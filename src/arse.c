@@ -37,6 +37,8 @@ void arse_init(struct arse *a){
   a->begin->previous = a->begin;
   a->end->next = a->end;
 
+  a->history = part_stack_create();
+  a->future = part_stack_create();
 }
 void arse_load_string(struct arse *a, char *initial_str){
   parse_input_string(a, initial_str, strlen(initial_str));
@@ -98,7 +100,7 @@ int arse_insert(struct arse *a, size_t index, char *str){
     int result = arse_insert(p->arse, index - distance, str);
     if(result != 0){
       debug("Failed inserting to subarse\n");
-      return NULL;
+      return 1;
     }
     // TODO: Verify this works
     /*
@@ -117,7 +119,7 @@ int arse_insert(struct arse *a, size_t index, char *str){
       tmp[start+length] = 0;
       a->buffers[ARSE_CHANGE] = tmp;
     } else {
-      return NULL;
+      return 1;
     }
     strcpy(a->buffers[ARSE_CHANGE] + start, str);
     if(p != a->end){
@@ -126,7 +128,7 @@ int arse_insert(struct arse *a, size_t index, char *str){
       index = p->length;
     }
     bool even = p->length == index;
-    /*
+
     struct part *range;
     if(even){
       range = part_create(p, p->next, 1);
@@ -134,7 +136,6 @@ int arse_insert(struct arse *a, size_t index, char *str){
       range = part_create(p, p, 1);
     }
     part_stack_push(a->history, range);
-    */
 
     if(!even){
       piece_split(p, index);
@@ -160,6 +161,34 @@ void arse_undo(struct arse *a){
     table_undo(t);
   }
   */
+  if(a->history->pointer > 0){
+    struct piece *start = a->begin;
+    struct part *p = part_stack_pop(a->history);
+    /* FIXME: Multiple start blocks during multiline undo tests, is it from copied parts that got included in restoration during undo/redo? */
+    while(!piece_equal_string(start, p->first->previous) && start != a->end){
+      start = start->next;
+    }
+
+    if(start == a->end){
+      fprintf(stderr, "ERROR: Undo start search reached end of piece chain\n");
+      return;
+    }
+    start = start->next;
+    struct piece *end = start;
+    while(!piece_equal_string(end, p->last->next) && end != a->end){
+      end = end->next;
+    }
+    end = end->previous;
+    //a->length -= piece_chain_length(start, end);
+    //a->length += piece_chain_length(p->first, p->last);
+    part_stack_push(a->future, part_create(start->previous->next, end->next->previous, 0));
+
+    start->previous->next = p->first;
+    end->next->previous = p->last;
+    part_delete(p, 0);
+  } else {
+    printf("Buffer already at oldest state\n");
+  }
 }
 void arse_redo(struct arse *a){
   /*
@@ -169,6 +198,30 @@ void arse_redo(struct arse *a){
     table_redo(t);
   }
   */
+  if(a->future->pointer > 0){
+    struct piece *start = a->begin;
+    struct part *p = part_stack_pop(a->future);
+    while(!piece_equal_string(start, p->first->previous) && start != a->end){
+      start = start->next;
+    }
+    if(start == a->end){
+      fprintf(stderr, "ERROR: Redo start search reached end of piece chain\n");
+      return 2;
+    }
+    struct piece *end = start;
+    while(!piece_equal_string(end, p->last->next) && end != a->end){
+      end = end->next;
+    }
+    //a->length -= piece_chain_length(start->next, end->previous);
+    //a->length += piece_chain_length(p->first, p->last);
+    part_stack_push(a->history, part_create(start->next, end->previous, 0));
+
+    start->next = p->first;
+    end->previous = p->last;
+    part_delete(p, 0);
+  } else {
+    printf("Buffer already at oldest state\n");
+  }
 }
 void arse_backup(struct arse *a){
 }
