@@ -47,11 +47,7 @@ struct arse* test_init_empty(){
   arse_init(editor);
   return editor;
 }
-struct arse* test_init_loaded(char *static_str){
-  // Copy to stack
-  char *str = malloc(sizeof(char) * strlen(static_str) + 1);
-  strcpy(str, static_str);
-
+struct arse* test_init_loaded(char *str){
   struct arse *editor = malloc(sizeof(struct arse));
   arse_init(editor);
   arse_load_string(editor, str);
