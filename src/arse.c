@@ -153,7 +153,65 @@ int arse_insert(struct arse *a, size_t index, char *str){
   return 0;
 }
 int arse_remove(struct arse *a, size_t index, size_t length){
-  return 0;
+  if(length == 0){
+    return 0;
+  }
+  struct piece *first = a->begin;
+  int distance = first->length;
+  /* Find piece to start removal */
+  while(distance < index && first != a->end){
+    first = first->next;
+    distance += first->length;
+  }
+  if(first->buffer == ARSE_EDITOR){
+    arse_remove(first->arse, index, length);
+    /*
+    for(size_t i = 0; i < first->arse->masters_count; ++i){
+      first->arse->masters[i]->length -= length;
+    }
+    */
+    //for(size_t i = 0; i < first->arse->hosts_count; ++i){
+    //first->arse->hosts[i]->length -= length;
+    //}
+  } else {
+    /* FIXME: Rewrite for better readability and logic */
+    //a->length -= length;
+    index = index - (distance - first->length);
+    struct piece *last = first;
+    distance = last->length - index;
+    while(distance < length && last != a->end){
+      last = last->next;
+      distance += last->length;
+    }
+    struct piece *part_start, *part_end;
+    bool border_next = (index == first->length);
+    part_start = (border_next) ? first->next : first;
+    bool whole_piece = (length == part_start->length);
+    int len = (distance - last->length);
+    if(len < 0){
+      len = 0;
+    } else {
+      len = length - len;
+    }
+    part_end = last;
+    part_stack_push(a->history, part_create(part_start, part_end, 1));
+    struct piece *del_start, *del_end;
+    bool split_end = (part_start == part_end);
+    del_start = (whole_piece) ? part_start : piece_split(first, index);
+
+    if(whole_piece){
+      del_end = del_start;
+    } else if(split_end){
+      del_end = piece_split(del_start, length)->previous;
+    } else {
+      del_end = ((part_end == last) ? piece_split(last, len) : part_end)->previous;
+    }
+
+    del_start->previous->next = del_end->next;
+    del_end->next->previous = del_start->previous;
+    piece_delete_to(del_start, del_end);
+  }
+  return;
 }
 void arse_undo(struct arse *a){
   /*
