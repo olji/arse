@@ -2,6 +2,13 @@
 #include "tests.h"
 #include "arse.h"
 
+int string_load_and_get(){
+  fprintf(stderr, "insert_start: ");
+  struct arse *editor = test_init_loaded("Testing");
+  int ret = assert(editor, "Testing");
+  test_cleanup(editor);
+  return ret;
+}
 int insert_start(){
   fprintf(stderr, "insert_start: ");
   struct arse *editor = test_init_loaded("Testing");
@@ -41,6 +48,7 @@ int undo_first(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_undo(editor);
@@ -54,6 +62,7 @@ int undo_second(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_undo(editor);
@@ -68,10 +77,12 @@ int undo_redo(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_undo(editor);
   if(check(editor, "TeOnesting")){
+    test_cleanup(editor);
     return 0;
   }
   arse_redo(editor);
@@ -85,14 +96,17 @@ int redo_undo(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_undo(editor);
   if(check(editor, "TeOnesting")){
+    test_cleanup(editor);
     return 0;
   }
   arse_redo(editor);
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_undo(editor);
@@ -114,6 +128,7 @@ int delete_inside_piece(){
   struct arse *editor = test_init_loaded("Testing");
   arse_insert(editor, 2, "One");
   if(check(editor, "TeOnesting")){
+    test_cleanup(editor);
     return 0;
   }
   arse_remove(editor, 3, 1);
@@ -128,6 +143,7 @@ int delete_whole_piece(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_remove(editor, 2, 3);
@@ -142,6 +158,7 @@ int delete_across_piece(){
   arse_insert(editor, 2, "One");
   arse_insert(editor, 7, "Two");
   if(check(editor, "TeOnestTwoing")){
+    test_cleanup(editor);
     return 0;
   }
   arse_remove(editor, 1, 7);
@@ -152,9 +169,10 @@ int delete_across_piece(){
 int arsify_piece(){
   fprintf(stderr, "arsify_piece: ");
   struct arse *editor = test_init_loaded("TestTest");
-  arse_piece_to_arse(editor, 0, 0, 4, false);
-  arse_piece_to_arse(editor, 0, 4, 4, false);
+  arse_piece_to_arse(editor, 0, 4, false);
+  arse_piece_to_arse(editor, 4, 4, false);
   if(check(editor, "TestTest")){
+    test_cleanup(editor);
     return 0;
   }
   arse_insert(editor, 2, "One");

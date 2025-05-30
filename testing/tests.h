@@ -1,6 +1,7 @@
 #ifndef TESTS_H
 #define TESTS_H
 struct arse;
+int string_load_and_get();
 int insert_start();
 int insert_middle();
 int insert_inside_piece();
