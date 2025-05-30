@@ -8,7 +8,6 @@ static int test_executed = 0;
 static int test_passed = 0;
 int assert(struct arse *a, char *expected){
   int ret = 0;
-  arse_buffer_delete(arse_get_buffer(a));
   struct arse_string *input = arse_get_string(a);
   if(strcmp(input->string, expected)){
     fprintf(stderr, "\033[0;31mExpected: \"%s\", Actual: \"%s\"\033[0m\n", expected, input->string);
@@ -21,12 +20,12 @@ int assert(struct arse *a, char *expected){
 }
 int check(struct arse *a, char *expected){
   int ret = 0;
-  arse_buffer_delete(arse_get_buffer(a));
   struct arse_string *input = arse_get_string(a);
   int result = strcmp(input->string, expected);
   if(result){
     fprintf(stderr, "\033[0;31mTest failed during setup, other functionality is broken\033[0m\n");
   }
+  arse_string_delete(input);
   return result;
 }
 
