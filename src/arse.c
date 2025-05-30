@@ -26,9 +26,6 @@ size_t default_hashfunc(char *str, size_t mod){
   return pos % mod;
 }
 void arse_init(struct arse *a){
-  //a->action_history = table_stack_create();
-  //a->action_future = table_stack_create();
-  //a->slaves = subarse_table_create(16, &default_hashfunc);
   a->buffers[ARSE_CHANGE] = calloc(1, sizeof(char));
 
   a->begin = piece_create(0, 0, ARSE_NONE);
@@ -44,10 +41,6 @@ void arse_load_string(struct arse *a, char *initial_str){
   parse_input_string(a, initial_str, strlen(initial_str));
 }
 void arse_delete(struct arse *a){
-  //subarse_table_delete(a->slaves);
-  //if(a->hosts != NULL){
-  //free(a->hosts);
-  //}
   struct piece *d = a->begin;
   struct piece *next = d->next;
   do{
@@ -64,33 +57,6 @@ void arse_delete(struct arse *a){
   free(a);
 }
 int arse_insert(struct arse *a, size_t index, char *str){
-  /*
-  size_t table = 0;
-  size_t length = 0;
-  size_t insertions = strinst(str, '\n') + 1;
-  char *heap_str = calloc(strlen(str) + 1, sizeof(char));
-  strcpy(heap_str, str);
-  char **insertion_strings;
-  insertion_strings = malloc(sizeof(char*) * insertions);
-  if(insertions > 1){
-    size_t i = 0;
-    char *token = strtok(heap_str, "\n");
-    while(token != NULL){
-      insertion_strings[i] = calloc(strlen(token) + ((i==0)?2:1), sizeof(char));
-      strncpy(insertion_strings[i], token, strlen(token));
-      if(i==0){
-        insertion_strings[i][strlen(token)] = '\n';
-      }
-      ++i;
-      token = strtok(NULL, "\n");
-    }
-  } else {
-    insertion_strings[0] = heap_str;
-  }
-
-  index = index - length;
-  return 0;
-  */
   struct piece *p = a->begin;
   size_t distance = 0;
   size_t length = strlen(str);
@@ -104,15 +70,6 @@ int arse_insert(struct arse *a, size_t index, char *str){
       debug("Failed inserting to subarse\n");
       return 1;
     }
-    // TODO: Verify this works
-    /*
-    for(size_t i = 0; i < p->arse->masters_count; ++i){
-      p->arse->masters[i]->length += length;
-    }
-    */
-    //for(size_t i = 0; i < p->arse->hosts_count; ++i){
-      //p->arse->hosts[i]->length += length;
-    //}
   } else {
     size_t start = strlen(a->buffers[ARSE_CHANGE]);
     struct piece *n = piece_create(start, length, ARSE_CHANGE);
@@ -165,17 +122,8 @@ int arse_remove(struct arse *a, size_t index, size_t length){
   }
   if(first->buffer == ARSE_EDITOR){
     arse_remove(first->arse, index, length);
-    /*
-    for(size_t i = 0; i < first->arse->masters_count; ++i){
-      first->arse->masters[i]->length -= length;
-    }
-    */
-    //for(size_t i = 0; i < first->arse->hosts_count; ++i){
-    //first->arse->hosts[i]->length -= length;
-    //}
   } else {
     /* FIXME: Rewrite for better readability and logic */
-    //a->length -= length;
     index = index - (distance - first->length);
     struct piece *last = first;
     distance = last->length - index;
@@ -211,16 +159,9 @@ int arse_remove(struct arse *a, size_t index, size_t length){
     del_end->next->previous = del_start->previous;
     piece_delete_to(del_start, del_end);
   }
-  return;
+  return 0;
 }
 void arse_undo(struct arse *a){
-  /*
-  struct table *t = table_stack_pop(a->action_history);
-  if(t != NULL){
-    table_stack_push(a->action_future, t);
-    table_undo(t);
-  }
-  */
   if(a->history->pointer > 0){
     struct piece *start = a->begin;
     struct part *p = part_stack_pop(a->history);
@@ -239,8 +180,6 @@ void arse_undo(struct arse *a){
       end = end->next;
     }
     end = end->previous;
-    //a->length -= piece_chain_length(start, end);
-    //a->length += piece_chain_length(p->first, p->last);
     part_stack_push(a->future, part_create(start->previous->next, end->next->previous, 0));
 
     start->previous->next = p->first;
@@ -251,13 +190,6 @@ void arse_undo(struct arse *a){
   }
 }
 void arse_redo(struct arse *a){
-  /*
-  struct table *t = table_stack_pop(a->action_future);
-  if(t != NULL){
-    table_stack_push(a->action_history, t);
-    table_redo(t);
-  }
-  */
   if(a->future->pointer > 0){
     struct piece *start = a->begin;
     struct part *p = part_stack_pop(a->future);
@@ -266,14 +198,12 @@ void arse_redo(struct arse *a){
     }
     if(start == a->end){
       fprintf(stderr, "ERROR: Redo start search reached end of piece chain\n");
-      return 2;
+      return;
     }
     struct piece *end = start;
     while(!piece_equal_string(end, p->last->next) && end != a->end){
       end = end->next;
     }
-    //a->length -= piece_chain_length(start->next, end->previous);
-    //a->length += piece_chain_length(p->first, p->last);
     part_stack_push(a->history, part_create(start->next, end->previous, 0));
 
     start->next = p->first;
@@ -294,7 +224,7 @@ struct arse_string *arse_get_string(struct arse *a){
   while(start != end->next){
     if(start->buffer == ARSE_EDITOR){
       struct arse_string *str = arse_get_string(start->arse);
-      strncpy(str + copy_index, str->string, str->length);
+      strncpy(str->string + copy_index, str->string, str->length);
       copy_index += str->length;
       arse_string_delete(str);
     } else {
